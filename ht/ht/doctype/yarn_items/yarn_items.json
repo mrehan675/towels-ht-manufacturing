@@ -1,0 +1,143 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-10-30 15:04:36.028997",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "parent_item",
+  "column_break_2",
+  "qty",
+  "section_break_4",
+  "net_lbs",
+  "column_break_6",
+  "loom_wastage",
+  "column_break_8",
+  "total_yarn_required",
+  "section_break_2",
+  "raw_mat_item",
+  "column_break_3",
+  "raw_mat_item_name",
+  "cons_rate",
+  "consumption_",
+  "column_break_16",
+  "consumption_lbs",
+  "column_break_10",
+  "rate_per_lbs",
+  "section_break_20",
+  "raw_material_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "parent_item",
+   "fieldtype": "Link",
+   "label": "Parent Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "Raw Materials"
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Data",
+   "label": "Parent Qty"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "net_lbs",
+   "fieldtype": "Data",
+   "label": "Net Lbs"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_yarn_required",
+   "fieldtype": "Data",
+   "label": "Total Yarn Required"
+  },
+  {
+   "fieldname": "raw_mat_item",
+   "fieldtype": "Link",
+   "label": "Raw Material Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "raw_mat_item_name",
+   "fieldtype": "Data",
+   "label": "Raw Material Item Name"
+  },
+  {
+   "fieldname": "cons_rate",
+   "fieldtype": "Section Break",
+   "label": "Consumption and Rate"
+  },
+  {
+   "fieldname": "consumption_",
+   "fieldtype": "Percent",
+   "label": "Consumption %"
+  },
+  {
+   "fieldname": "consumption_lbs",
+   "fieldtype": "Float",
+   "label": "Consumption Lbs"
+  },
+  {
+   "fieldname": "rate_per_lbs",
+   "fieldtype": "Data",
+   "label": "Rate Per Lbs"
+  },
+  {
+   "fieldname": "section_break_20",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "raw_material_amount",
+   "fieldtype": "Currency",
+   "label": "Raw Material Amount"
+  },
+  {
+   "fieldname": "loom_wastage",
+   "fieldtype": "Percent",
+   "label": "Loom Wastage %"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-12-26 15:16:09.531480",
+ "modified_by": "Administrator",
+ "module": "HT",
+ "name": "Yarn Items",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

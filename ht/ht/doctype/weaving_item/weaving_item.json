@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-10-27 18:28:50.263005",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "oh_rate",
+  "sh_rate",
+  "lbs",
+  "rs",
+  "table_5"
+ ],
+ "fields": [
+  {
+   "fieldname": "oh_rate",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "OH Rate"
+  },
+  {
+   "fieldname": "sh_rate",
+   "fieldtype": "Data",
+   "label": "SH Rate"
+  },
+  {
+   "fieldname": "lbs",
+   "fieldtype": "Data",
+   "label": "Lbs"
+  },
+  {
+   "fieldname": "rs",
+   "fieldtype": "Data",
+   "label": "Rs"
+  },
+  {
+   "fieldname": "table_5",
+   "fieldtype": "Table",
+   "options": "weaving test"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-10-27 19:31:36.555690",
+ "modified_by": "Administrator",
+ "module": "HT",
+ "name": "Weaving Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

@@ -1,0 +1,32 @@
+{
+ "custom_fields": [],
+ "custom_perms": [],
+ "doctype": "Yarn Purchase Order Type",
+ "property_setters": [
+  {
+   "_assign": null,
+   "_comments": null,
+   "_liked_by": null,
+   "_user_tags": null,
+   "creation": "2024-02-22 16:45:55.654682",
+   "default_value": null,
+   "doc_type": "Yarn Purchase Order Type",
+   "docstatus": 0,
+   "doctype_or_field": "DocField",
+   "field_name": "cartrage",
+   "idx": 0,
+   "modified": "2024-02-22 16:45:55.654682",
+   "modified_by": "Administrator",
+   "name": "Yarn Purchase Order Type-cartrage-hidden",
+   "owner": "Administrator",
+   "parent": null,
+   "parentfield": null,
+   "parenttype": null,
+   "property": "hidden",
+   "property_type": "Check",
+   "row_name": null,
+   "value": "1"
+  }
+ ],
+ "sync_on_migrate": 1
+}

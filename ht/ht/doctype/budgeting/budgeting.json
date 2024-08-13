@@ -1,0 +1,449 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2023-10-27 17:24:15.789277",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "detail_section_section",
+  "naming_series",
+  "customer",
+  "sales_order",
+  "column_break_4",
+  "shipment_date",
+  "delay_days",
+  "profitloss",
+  "column_break_8",
+  "order_receiving_date",
+  "budget_prepare_date",
+  "item_section",
+  "budgeting_item",
+  "total_qty",
+  "parent_items_table",
+  "yarn_items_section",
+  "rawmaterial_yarn_items",
+  "raw_materials_grouped",
+  "section_break_16",
+  "total_yarn_required",
+  "column_break_19",
+  "total_net_lbs",
+  "clm_brk",
+  "total_raw_material_amount",
+  "sales_details_section",
+  "us_dollar",
+  "local_sales",
+  "column_break_18",
+  "exchange_rate",
+  "rebate_percent_rate",
+  "column_break_20",
+  "total_amount_pkr",
+  "rebate_value",
+  "column_break_23",
+  "rate__lbs",
+  "export_lbs",
+  "section_break_37",
+  "sales_review_in_foreign_currency",
+  "accessories_section",
+  "accessories_item",
+  "section_break_28",
+  "acc_total_qty",
+  "column_break_29",
+  "acc_total_amount",
+  "packaging_details_section",
+  "packing_items",
+  "section_break_34",
+  "pack_total_qty",
+  "column_break_34",
+  "pack_total_amount",
+  "other_expenses_section",
+  "expense_items",
+  "section_break_40",
+  "total_expense_amount",
+  "costing_section_section",
+  "cost_details",
+  "section_break_70",
+  "total_cost_amount",
+  "column_break_72",
+  "total_cost_percent",
+  "column_break_74",
+  "total_cost_rslb_export",
+  "column_break_60",
+  "total_amount",
+  "raw_materials_printing_data"
+ ],
+ "fields": [
+  {
+   "fieldname": "detail_section_section",
+   "fieldtype": "Section Break",
+   "label": "Detail Section"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Sales Order",
+   "options": "Sales Order"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "shipment_date",
+   "fieldtype": "Date",
+   "label": "Shipment Date"
+  },
+  {
+   "fieldname": "profitloss",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Profit/Loss",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "order_receiving_date",
+   "fieldtype": "Date",
+   "label": "Order Receiving Date"
+  },
+  {
+   "fieldname": "budget_prepare_date",
+   "fieldtype": "Date",
+   "label": "Budget Prepare Date"
+  },
+  {
+   "fieldname": "delay_days",
+   "fieldtype": "Data",
+   "label": "Delay Days"
+  },
+  {
+   "fieldname": "item_section",
+   "fieldtype": "Section Break",
+   "label": "Items"
+  },
+  {
+   "fieldname": "budgeting_item",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Budgeting Item"
+  },
+  {
+   "fieldname": "sales_details_section",
+   "fieldtype": "Section Break",
+   "label": "Sales Details"
+  },
+  {
+   "description": "TOTAL AMOUNT IN USD",
+   "fieldname": "us_dollar",
+   "fieldtype": "Currency",
+   "label": "Foreign Currency Amount",
+   "options": "currency"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "USER INPUT",
+   "fieldname": "exchange_rate",
+   "fieldtype": "Float",
+   "label": "Exchange Rate"
+  },
+  {
+   "fieldname": "column_break_20",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Export Sales",
+   "fieldname": "total_amount_pkr",
+   "fieldtype": "Currency",
+   "label": "Total Amount (PKR)"
+  },
+  {
+   "description": "= EXPORT SALES / EXPORT LBS",
+   "fieldname": "rate__lbs",
+   "fieldtype": "Data",
+   "label": "Rate / Lbs"
+  },
+  {
+   "fieldname": "column_break_23",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "accessories_section",
+   "fieldtype": "Section Break",
+   "label": "Accessories"
+  },
+  {
+   "fieldname": "accessories_item",
+   "fieldtype": "Table",
+   "options": "Accessories Item"
+  },
+  {
+   "fieldname": "acc_total_qty",
+   "fieldtype": "Data",
+   "label": "Total Qty (Accessories)"
+  },
+  {
+   "fieldname": "acc_total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount (Accessories)"
+  },
+  {
+   "fieldname": "column_break_29",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "packaging_details_section",
+   "fieldtype": "Section Break",
+   "label": "Packaging Details"
+  },
+  {
+   "fieldname": "packing_items",
+   "fieldtype": "Table",
+   "options": "Packaging Details"
+  },
+  {
+   "fieldname": "pack_total_qty",
+   "fieldtype": "Float",
+   "label": "Total Qty (Packing)"
+  },
+  {
+   "fieldname": "column_break_34",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pack_total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount (Packing)"
+  },
+  {
+   "fieldname": "section_break_28",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_34",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "other_expenses_section",
+   "fieldtype": "Section Break",
+   "label": "Other Expenses"
+  },
+  {
+   "fieldname": "expense_items",
+   "fieldtype": "Table",
+   "label": "Expenses Details",
+   "options": "Expenses Details"
+  },
+  {
+   "fieldname": "section_break_40",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "TOTAL QTY OF VARIANT ITEMS",
+   "fieldname": "total_qty",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Total Qty",
+   "read_only": 1
+  },
+  {
+   "description": "=EXPORT SALES + LOCAL SALES + REBATE @% VALUE",
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "yarn_items_section",
+   "fieldtype": "Section Break",
+   "label": "Raw Material Consumption"
+  },
+  {
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "SUM OF ALL RAW MATERIAL CONSUMPTION LBS",
+   "fieldname": "total_yarn_required",
+   "fieldtype": "Float",
+   "label": "Total Yarn Required"
+  },
+  {
+   "fieldname": "clm_brk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "SUM OF ALL RAW MATERIAL AMOUNT",
+   "fieldname": "total_raw_material_amount",
+   "fieldtype": "Currency",
+   "label": "Total Raw Material Amount"
+  },
+  {
+   "fieldname": "rawmaterial_yarn_items",
+   "fieldtype": "Table",
+   "options": "Yarn Items"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "BD-.YYYYMMDD-.#####"
+  },
+  {
+   "allow_bulk_edit": 1,
+   "fieldname": "parent_items_table",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Parent Items Table",
+   "options": "Sales Order Item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_19",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "SUM OF ALL RAW MATERIAL NET LBS",
+   "fieldname": "total_net_lbs",
+   "fieldtype": "Float",
+   "label": "Total Net LBS"
+  },
+  {
+   "description": "TOTAL OF COST AMOUNT FROM COSTING TABLE",
+   "fieldname": "total_cost_amount",
+   "fieldtype": "Currency",
+   "label": "Total Cost Amount",
+   "read_only_depends_on": "TOTAL OF COST AMOUNT FROM COSTING TABLE"
+  },
+  {
+   "default": "0.0",
+   "description": "SUM OF EXPENSES",
+   "fieldname": "total_expense_amount",
+   "fieldtype": "Currency",
+   "label": "Total Expense Amount"
+  },
+  {
+   "fieldname": "costing_section_section",
+   "fieldtype": "Section Break",
+   "label": "Costing Section"
+  },
+  {
+   "fieldname": "cost_details",
+   "fieldtype": "Table",
+   "label": "Cost Details",
+   "options": "Budgeting Cost Details"
+  },
+  {
+   "fieldname": "section_break_70",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_72",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "TOTAL OF COST % FROM COSTING TABLE",
+   "fieldname": "total_cost_percent",
+   "fieldtype": "Percent",
+   "label": "Total Cost Percent"
+  },
+  {
+   "fieldname": "column_break_74",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "TOTAL OF COST RSLB FROM COSTING TABLE",
+   "fieldname": "total_cost_rslb_export",
+   "fieldtype": "Float",
+   "label": "Total Cost RSLB Export"
+  },
+  {
+   "description": "SUM OF BKGS*B_KGS_RATE FOR ALL PARENT ITEMS",
+   "fieldname": "local_sales",
+   "fieldtype": "Currency",
+   "label": "Local Sales"
+  },
+  {
+   "description": "USER INPUT",
+   "fieldname": "rebate_percent_rate",
+   "fieldtype": "Percent",
+   "label": "Rebate Percent Rate"
+  },
+  {
+   "description": "=REBATE % OF EXPORT SALES",
+   "fieldname": "rebate_value",
+   "fieldtype": "Currency",
+   "label": "Rebate Value"
+  },
+  {
+   "description": "TOTAL EXPORT LBS SUM OF ALL PARENT ITEM LBS",
+   "fieldname": "export_lbs",
+   "fieldtype": "Float",
+   "label": "Export LBS"
+  },
+  {
+   "fieldname": "column_break_60",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "raw_materials_printing_data",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "Raw Materials Printing Data",
+   "read_only": 1
+  },
+  {
+   "fieldname": "raw_materials_grouped",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Raw Materials Grouped",
+   "options": "Sales Order Raw Material",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_review_in_foreign_currency",
+   "fieldtype": "Table",
+   "label": "Sales Review in Foreign Currency",
+   "options": "Budgeting Sales Review"
+  },
+  {
+   "fieldname": "section_break_37",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-02-01 14:37:03.685246",
+ "modified_by": "Administrator",
+ "module": "HT",
+ "name": "Budgeting",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

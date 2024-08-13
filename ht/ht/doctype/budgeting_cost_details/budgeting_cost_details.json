@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-01-11 18:15:35.855210",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "cost_component",
+  "column_break_2",
+  "cost_amount",
+  "column_break_4",
+  "cost_percent",
+  "column_break_6",
+  "rs_lb_export"
+ ],
+ "fields": [
+  {
+   "fieldname": "cost_component",
+   "fieldtype": "Select",
+   "label": "Cost Component",
+   "options": "\nYarn\nWeaving\nShearing\nDyeing\nStitching\nEmbroidery\nPrinting\nAccessories\nPacking\nExpense"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cost_amount",
+   "fieldtype": "Currency",
+   "label": "Cost Amount"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cost_percent",
+   "fieldtype": "Percent",
+   "label": "Cost Percent"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rs_lb_export",
+   "fieldtype": "Float",
+   "label": "RS LB Export"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-01-11 18:15:35.855210",
+ "modified_by": "Administrator",
+ "module": "HT",
+ "name": "Budgeting Cost Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
