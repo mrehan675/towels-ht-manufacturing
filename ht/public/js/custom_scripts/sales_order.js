@@ -639,12 +639,21 @@ frappe.ui.form.on('Sales Order', {
 });
 
 
+
 const fetch_sales_order=(frm)=>{
     if (frm.doc.parent_item) {
         frm.data = []
         let dialog = new frappe.ui.Dialog({
             title: __("Variants of the Item"),
             fields: [
+                {
+                    fieldtype: 'Data',
+                    fieldname: 'item_name_filter',
+                    label: __('Filter by Item Name'),
+                    change: function () {
+                        applyFilter(dialog, frm);
+                    }
+                },
                 {
                     fieldname: "items", read_only: 1, label: 'Variants of the Item', fieldtype: "Table", cannot_add_rows: true, data: frm.data,
                     get_data: () => {
@@ -1132,26 +1141,14 @@ const fetch_sales_order=(frm)=>{
                 dialog.hide();
             }
         });
-            function updateTotalQty(dialog) {
-                let totalQty = 0;
-                const items = dialog.get_value('items');
-                
-                if (items && items.length > 0) {
-                    for (let row of items) {
-                        if (row.check == 1) {
-                            totalQty += row.qty || 0;
-                        }
-                    }
-                }
-                
-                dialog.set_value('total_qty', totalQty);
-            }
+        
+        
 
-
+        
 
         frappe.call({
             async: false,
-            method: "ht.variant.setting_variant",
+            method: "ht.utils.variant.setting_variant",
             args: {
                 parent_item : cur_frm.doc.parent_item,
             },
@@ -1201,7 +1198,24 @@ const fetch_sales_order=(frm)=>{
                                     "b_kgs_rate": frm.doc.b_kgs_rate,
                                     "cut_length": frm.doc.cut_length,
                                 });
-                                frm.data = dialog.fields_dict.items.df.data;
+                                dialog.fields_dict.items.df.data = dialog.fields_dict.items.df.data.map(variant => {
+                                    // Check if the item is already in the main item table (e.g., frm.doc.items)
+                                    let existsInMainTable = frm.doc.items.some(item => item.item_name === variant.item_name);
+                                    
+                                    // If exists, mark the select checkbox
+                                    if (existsInMainTable) {
+                                        variant.check = 1;
+                                        variant.disabled = true; // Add a flag to indicate the row should be frozen
+                                                                           
+                                    } else {
+                                        variant.check = 0;
+                                        variant.disabled = false; // Ensure editable if not exists
+                                    }
+                                
+                                    return variant;
+                                });
+                                
+                                frm.data = dialog.fields_dict.items.df.data;                                
                                 dialog.fields_dict.items.grid.refresh();
                             }, 500);
                         });
@@ -1217,6 +1231,42 @@ const fetch_sales_order=(frm)=>{
         frappe.msgprint('Please Select Parent Item First');
     }
 }
+
+function updateTotalQty(dialog) {
+    let totalQty = 0;
+    const items = dialog.get_value('items');
+    
+    if (items && items.length > 0) {
+        for (let row of items) {
+            if (row.check == 1) {
+                totalQty += row.qty || 0;
+            }
+        }
+    }
+    
+    dialog.set_value('total_qty', totalQty);
+}
+
+
+
+const applyFilter = (dialog, frm) => {
+    let filter_value = dialog.get_value('item_name_filter').toLowerCase();
+
+    console.log("filter",filter_value);
+    
+    // Assume `frm.data` is your original dataset
+    let filtered_data = frm.data.filter(row => {
+        return !filter_value || row.item_name.toLowerCase().includes(filter_value);
+    });
+
+    console.log("filter_data",filtered_data);
+
+    dialog.fields_dict.items.df.data = filtered_data;
+    dialog.fields_dict.items.grid.refresh();
+
+    updateTotalQty(dialog);
+};
+
 
 
 ///////////////////////////////////////////////////////Testing////////////////////////////////////////////////////////////////////////////////////////

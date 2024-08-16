@@ -11,7 +11,8 @@ def setting_variant(parent_item):
 
     result = frappe.db.get_list('Item',
                                 filters={
-                                    'variant_of': parent_item
+                                    'variant_of': parent_item,
+                                    'item_group':"Finished Goods",
                                 },
                                 fields=['*'],
                                 order_by='idx')
