@@ -415,8 +415,13 @@ frappe.ui.form.on('Purchase Order', {
             if (frm.doc.purchase_type == 'Dying Service'){
                 let child = locals[cdt][cdn]
                 var qty_w_b_percent = child.qty *  (1 + child.b_percent/100)
-                frappe.model.set_value(cdt,cdn,"qty_in_pcs", (child.finish_weight * qty_w_b_percent) / 1000 * 2.2046)   // in lbs
-                frappe.model.set_value(cdt,cdn,"qty_in_kgs", (child.finish_weight * qty_w_b_percent) / 1000  )  // kgs
+
+                frappe.model.set_value(cdt,cdn,"qty_in_pcs", (child.finish_weight * child.qty) / 1000 * 2.2046)   // in lbs
+                frappe.model.set_value(cdt,cdn,"qty_in_kgs", (child.finish_weight * child.qty) / 1000  )  // kgs
+
+
+                // frappe.model.set_value(cdt,cdn,"qty_in_pcs", (child.finish_weight * qty_w_b_percent) / 1000 * 2.2046)   // in lbs
+                // frappe.model.set_value(cdt,cdn,"qty_in_kgs", (child.finish_weight * qty_w_b_percent) / 1000  )  // kgs
                 frappe.model.set_value(cdt,cdn,"uom", 'pcs' )  
 
             }
@@ -1200,6 +1205,7 @@ const fetch_so_dying_service = (frm) => {
                             //last code
                             // frappe.model.set_value(cdt, cdn, 'qty', row.qty);
                             // frappe.model.set_value(cdt, cdn, 'qty_in_pcs', row.qty_in_pcs);
+                            
                             frappe.model.set_value(cdt, cdn, 'qty_in_kgs', row.qty_in_kgs);
                             frappe.model.set_value(cdt, cdn, 'finish_weight', row.finish_weight);
                             frappe.model.set_value(cdt, cdn, 'weight_measuring_unit', row.weight_measuring_unit);
