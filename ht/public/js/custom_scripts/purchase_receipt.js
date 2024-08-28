@@ -803,6 +803,14 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                             columns: 2
                         },
                         {
+                            fieldtype: 'Data',
+                            fieldname: "rate",
+                            in_list_view: 0,
+                            read_only: 1,
+                            label: __('Rate'),
+                            columns: 2
+                        },
+                        {
                             fieldtype: 'Check',
                             fieldname: "check",
                             label: __('Select'),
@@ -873,6 +881,13 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
 
                             frappe.model.set_value(cdt, cdn, 'brand', row.brand);
                             frappe.model.set_value(cdt, cdn, 'qty', row.qty);
+                            
+                            setTimeout(function() {
+                                frappe.model.set_value(cdt, cdn, 'rate', row.rate);
+                                frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
+                            }, 1000); // Delay of 1000 milliseconds
+
+
                             frappe.model.set_value(cdt, cdn, 'color', row.color);
                             frappe.model.set_value(cdt, cdn, 'rate_10_lbs', row.rate_per_lbs);
 
@@ -912,6 +927,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                                         "description":row.description,
                                         "brand": row.brand,
                                         "qty": row.qty,
+                                        "rate": row.rate,
                                         "total_received_qty": row.received_qty,
                                         "rate_per_lbs": row.rate_per_10lbs,
                                         "balance_qty": ((row.qty) - (row.received_qty)) || 0
@@ -1008,6 +1024,14 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                             columns: 2
                         },
                         {
+                            fieldtype: 'Data',
+                            fieldname: "rate",
+                            in_list_view: 0,
+                            read_only: 1,
+                            label: __('Rate'),
+                            columns: 2
+                        },
+                        {
                             fieldtype: 'Check',
                             fieldname: "check",
                             label: __('Select'),
@@ -1078,6 +1102,12 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
 
                             frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
                             frappe.model.set_value(cdt, cdn, 'qty', row.balance_qty);
+                            setTimeout(function() {
+                                frappe.model.set_value(cdt, cdn, 'rate', row.rate);
+                                frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
+                            }, 1500); // Delay of 1000 milliseconds
+                            
+
                             frappe.model.set_value(cdt, cdn, 'greigh_weigh_unit', row.greigh_weigh_unit);
                             frappe.model.set_value(cdt, cdn, 'finish_weight_unit', row.finish_weight_unit);
 
@@ -1116,6 +1146,7 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                                         "description":row.description,
                                         "fancy": row.fancy,
                                         "qty": row.qty,
+                                        "rate":row.rate,
                                         "total_received_qty": row.received_qty,
                                         "greigh_weigh_unit": row.greigh_weigh_unit,
                                         "finish_weight_unit": row.finish_weight_unit,
@@ -1227,6 +1258,14 @@ const fetch_po_for_accessories_purchase_receipt = (frm) => {
                             columns: 2
                         },
                         {
+                            fieldtype: 'Data',
+                            fieldname: "rate",
+                            in_list_view: 0 ,
+                            read_only: 1,
+                            label: __('Rate'),
+                            columns: 2
+                        },
+                        {
                             fieldtype: 'Check',
                             fieldname: "check",
                             label: __('Select'),
@@ -1276,6 +1315,12 @@ const fetch_po_for_accessories_purchase_receipt = (frm) => {
                             
                             frappe.model.set_value(cdt, cdn, 'category', row.category);
                             frappe.model.set_value(cdt, cdn, 'qty', row.balance_qty);
+
+                            setTimeout(function() {
+                                frappe.model.set_value(cdt, cdn, 'rate', row.rate);
+                                frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
+                            }, 1000); // Delay of 1000 milliseconds
+
                             
                         }
                     }
@@ -1312,6 +1357,7 @@ const fetch_po_for_accessories_purchase_receipt = (frm) => {
                                         "description":row.description,
                                         "category": row.category,
                                         "qty": row.qty,
+                                        "rate": row.rate,
                                         "total_received_qty": row.received_qty,
                                         "job_no": row.job_no,
                                         "uom": row.uom,
@@ -1429,7 +1475,7 @@ const fetch_po_yarn_dying_po_pr = (frm) => {
                         {
                             fieldtype: 'Data',
                             fieldname: "rate",
-                            in_list_view: 1,
+                            in_list_view: 0,
                             read_only: 1,
                             label: __('Rate'),
                             columns: 1
@@ -1484,6 +1530,11 @@ const fetch_po_yarn_dying_po_pr = (frm) => {
                             
                             frappe.model.set_value(cdt, cdn, 'category', row.category);
                             frappe.model.set_value(cdt, cdn, 'qty', row.balance_qty);
+                            setTimeout(function() {
+                                frappe.model.set_value(cdt, cdn, 'rate', row.rate);
+                                frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
+                            }, 1000); // Delay of 1000 milliseconds
+
                             
                         }
                     }

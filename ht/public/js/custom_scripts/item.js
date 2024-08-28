@@ -94,7 +94,7 @@ erpnext.item.show_multiple_variants_dialog = function(frm) {
 
 				me.multiple_variant_dialog.hide();
 				frappe.call({
-					method: "erpnext.controllers.item_variant.enqueue_multiple_variant_creation",
+					method: "ht.utils.item.enqueue_multiple_variant_creation",
 					args: {
 						"item": frm.doc.name,
 						"args": selected_attributes
@@ -131,12 +131,14 @@ erpnext.item.show_multiple_variants_dialog = function(frm) {
 				selected_attributes[attribute_name] = [];
 				let checked_opts = $(col).find('.checkbox input');
 				checked_opts.each((i, opt) => {
-					if($(opt).is(':checked')) {
+                    let fieldname = $(opt).attr('data-fieldname');
+					if($(opt).is(':checked') && !fieldname.startsWith('select_all_')) {
 						selected_attributes[attribute_name].push($(opt).attr('data-fieldname'));
 					}
 				});
 			});
 
+            console.log("select attributes",selected_attributes);
 			return selected_attributes;
 		}
 

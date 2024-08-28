@@ -245,6 +245,7 @@ def fetch_yarn_items(job_no, purchase_type, supplier):
 			po_it.description As description,
             po_it.brand,
             po_it.qty,
+			po_it.rate,
             po_it.received_qty,
             po_it.rate AS rate_per_10lbs
         FROM
@@ -277,7 +278,8 @@ def fetch_weave_items(job_no, purchase_type, supplier):
 			po_it.item_name As item_name,
 			po_it.description As description,
 			po_it.received_qty,
-			po_it.qty,			
+			po_it.qty,
+			po_it.rate,			
             po_it.fancy,
 			po_it.greigh_weigh_unit,
 			po_it.finish_weight_unit
@@ -319,7 +321,8 @@ def fetch_accessories_items(job_no, purchase_type, supplier):
 			po_it.category,
 			po_it.uom,	
 			po_it.received_qty,
-			po_it.qty		
+			po_it.qty,
+			po_it.rate		
             
             
            

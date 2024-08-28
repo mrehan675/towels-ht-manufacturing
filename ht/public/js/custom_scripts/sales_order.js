@@ -59,6 +59,18 @@ frappe.ui.form.on('Sales Order', {
             
             }
         });
+
+
+
+        //Filter Parent item field based
+        frm.set_query("parent_item", function() {
+			return {
+				filters: [
+					["has_variants", "=", "1"],
+                    ["item_group","=","Finished Goods"]
+				]
+			}
+		});
     },
     
     total_parent_qty(frm) {
@@ -634,9 +646,60 @@ frappe.ui.form.on('Sales Order', {
     },
     clear_fields(frm){
         clear_parent_fields(frm);
+    },
+    parent_rows(frm){
+        fetch_parent_items(frm);
     }
     
 });
+
+
+function fetch_parent_items(frm){
+
+    console.log("chck parent");
+    let matched_row = null;
+            frm.doc.parent_items_table.forEach(function(row) {
+                if (row.variant_of !== frm.doc.parent_item) {
+                    matched_row = row;
+                    console.log("matched_row",matched_row);
+
+                }
+            });
+
+            if (matched_row) {
+                // Set the parent form fields with the matched row's values
+                frm.set_value("parent_item",matched_row.variant_of);
+                frm.set_value("net_weight",matched_row.net_weight);
+                frm.set_value("greigh_weight",matched_row.greigh_weight);
+                frm.set_value("weight_difference",matched_row.weight_difference);
+                frm.set_value("cut_length",matched_row.cut_length);
+                frm.set_value("embroidery_rate",matched_row.embroidery_rate);
+                frm.set_value("b_kgs_rate",matched_row.b_kgs_rate);
+                frm.set_value("stitch_waste_qty",matched_row.stitch_waste_qty);
+                frm.set_value("weight_measuring_unit",matched_row.weight_measuring_unit);
+                frm.set_value("total_parent_qty",matched_row.total_parent_qty);
+                frm.set_value("total_parent_qty_uom",matched_row.total_parent_qty_uom);
+                frm.set_value("total_secondary_qty",matched_row.total_secondary_qty);
+                frm.set_value("total_seconday_qty_uom",matched_row.total_seconday_qty_uom);
+                frm.set_value("dye_rate",matched_row.dye_rate);
+                frm.set_value("total_parent_qty_with_b_percent",matched_row.total_parent_qty_with_b_percent);
+                frm.set_value("printing_rate",matched_row.printing_rate);
+                frm.set_value("total_secondary_qty_with_b_percent",matched_row.total_secondary_qty_with_b_percent);
+                frm.set_value("oh_rate",matched_row.oh_rate);
+                frm.set_value("sh_rate",matched_row.sh_rate);
+                frm.set_value("stitching_rate",matched_row.stiching_rate);
+                frm.set_value("b_percent",matched_row.b_percent);
+                frm.set_value("loom_wastage",matched_row.loom_wastage);
+                frm.set_value("dye_waste_percentage",matched_row.dye_waste_percentage);
+                frm.set_value("greigh_kgs",matched_row.greigh_kgs);
+                frm.set_value("final_lbs",matched_row.final_lbs);
+                // Set more fields as necessary
+
+                // frappe.msgprint(__('Parent form fields updated from the child table.'));
+            } else {
+                frappe.msgprint(__('No matching rows found in parent_item_table.'));
+            }
+}
 
 
 
@@ -1708,3 +1771,5 @@ function clear_parent_fields(frm){
     frm.set_value("greigh_kgs",'');
     frm.set_value("final_lbs",'');
 }
+
+
