@@ -2,9 +2,36 @@ import json
 from console import console #custom call of app for checking purpose
 import frappe
 from frappe import _, msgprint
+from frappe.utils import flt
 
 
 
+def set_subcontracted_items(doc, method):
+	if not doc.purchase_order:
+		return
+
+	# Fetch supplied items from the Purchase Order
+	po_items = frappe.db.get_all('Purchase Order Item Supplied',
+									filters={'parent': doc.purchase_order},
+									fields=['main_item_code', 'rm_item_code'])
+
+	console("po_item",po_items).log()
+	console("po",doc.purchase_order).log()
+	po_item_map = {item['rm_item_code']: item['main_item_code'] for item in po_items}
+
+	console("po_item_map",po_item_map).log()
+
+	for item in doc.items:
+		console("enter i item").log()
+		# Match the item_code in the Purchase Receipt with the Purchase Order's supplied items
+		if item.item_code in po_item_map:
+			console("pass").log()
+			item.subcontracted_item = po_item_map[item.item_code]
+
+	# Update the doc in the database
+	# doc.save()
+
+# Hook this method in your Purchase Receipt DocType's `before_save` event
 
 
 @frappe.whitelist()
@@ -102,8 +129,9 @@ def make_rm_stock_entry(purchase_order, items):
 							stock_entry.append("items", items_dict)
 							update_supplied_qty(rm_item_data["name"], qty)
 					else:
-						frappe.throw(_("No matching item found for item_code {} in Purchase Order").format(rm_item_code))
-
+						# frappe.throw(_("No matching item found for item_code {} in Purchase Order").format(rm_item_code))
+						console("No matching item found for item_code", rm_item_code).log()
+						continue
 					# else:
 					# 	qty = 0
 					# items_dict = {
@@ -231,7 +259,7 @@ def update_supplied_qty(po_detail, qty):
 
 
 @frappe.whitelist()
-def fetch_yarn_items(job_no, purchase_type, supplier):
+def fetch_yarn_items(purchase_type, supplier):
     raw_list = []
     
     raw_list = frappe.db.sql(""" 
@@ -247,7 +275,10 @@ def fetch_yarn_items(job_no, purchase_type, supplier):
             po_it.qty,
 			po_it.rate,
             po_it.received_qty,
-            po_it.rate AS rate_per_10lbs
+            po_it.rate AS rate_per_10lbs,
+			po_it.bag_ctn,
+			po_it.lbs_bag,
+			po_it.uom
         FROM
             `tabPurchase Order Item` AS po_it
         JOIN
@@ -255,10 +286,9 @@ def fetch_yarn_items(job_no, purchase_type, supplier):
         ON
             po.name = po_it.parent
         WHERE
-            po.job_number = %s AND
             po.purchase_type = %s AND
             po.supplier = %s
-    """, (job_no, purchase_type, supplier), as_dict=1)
+    """, (purchase_type, supplier), as_dict=1)
 
 
     return raw_list

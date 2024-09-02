@@ -4479,7 +4479,7 @@
    "modified": "2024-06-28 15:53:13.795155",
    "modified_by": "Administrator",
    "name": "Sales Order Item-order_placed_qty",
-   "no_copy": 0,
+   "no_copy": 1,
    "non_negative": 0,
    "options": null,
    "owner": "Administrator",

@@ -1011,9 +1011,12 @@ const fetch_sales_order=(frm)=>{
             primary_action_label: 'Get Items',
             primary_action(values) {
                 if (values.items) {
+                    let po_check_itemslist = [];
                     for (let row of values.items) {
                         if (row.check == 1) {
-                            setTimeout(function () {
+                            // setTimeout(function () {
+                                po_check_itemslist.push(row.item_code);
+                                
                                 let child = frm.add_child('items');
                                 let cdt = child.doctype
                                 let cdn = child.name
@@ -1035,9 +1038,10 @@ const fetch_sales_order=(frm)=>{
                                 }
                                 frappe.model.set_value(cdt, cdn, 'so_row_name', row.so_row_name);
 
-                            }, 1000);
+                            // }, 1000);
                         }
                     }
+                    console.log("po_check_itemslist",po_check_itemslist);
 
                     frappe.call({
                         method: "ht.utils.purchase_order.fetch_raw_material_items",
@@ -1048,6 +1052,8 @@ const fetch_sales_order=(frm)=>{
                         callback: (r) => {
                             if (r.message) {
                                 for (let row of r.message) {
+                                    
+                                    if (po_check_itemslist.includes(row.parent_item)) {
                                     let child = frm.add_child('supplied_items');
                                     let cdt = child.doctype
                                     let cdn = child.name
@@ -1061,6 +1067,7 @@ const fetch_sales_order=(frm)=>{
                                     frappe.model.set_value(cdt, cdn, "consumption", row.consumption_);
                                 }
                             }
+                        }
                         }
                     });
                 }
@@ -1159,16 +1166,16 @@ const fetch_so_dying_service = (frm) => {
                         return frm.data;
                     },
                     fields: [
-                        { fieldtype: 'Data', fieldname: "parent_item_name", in_list_view: 1, read_only: 1, label: __('Parent Item'), columns: 2 },
+                        { fieldtype: 'Data', fieldname: "parent_item_name", in_list_view: 1, read_only: 1, label: __('Parent Item'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "item_code", in_list_view: 1, read_only: 1, label: __('Item Code'), columns: 2 },
                         { fieldtype: 'Data', fieldname: "item_name", in_list_view: 0, read_only: 1, label: __('Item Name'), columns: 2 },
                         { fieldtype: 'Data', fieldname: "description", in_list_view: 0, read_only: 1, label: __('Description'), columns: 2 },
                         { fieldtype: 'Check', fieldname: "check", label: __('Select'), in_list_view: 1, columns: 1 },
-                        { fieldtype: 'Data', fieldname: "qty", in_list_view: 1, read_only: 1, label: __('Qty'), columns: 2 },
+                        { fieldtype: 'Data', fieldname: "qty", in_list_view: 1, read_only: 1, label: __('Qty'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "uom", in_list_view: 0, read_only: 1, label: __('UOM'), columns: 2 },
                         { fieldtype: 'Data', fieldname: "qty_in_pcs", in_list_view: 0, read_only: 1, label: __('Qty in Pcs'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "qty_in_kgs", in_list_view: 0, read_only: 1, label: __('Qty in Kgs'), columns: 1 },
-                        { fieldtype: 'Data', fieldname: "finish_weight", in_list_view: 0, read_only: 1, label: __('Finish Weight'), columns: 2 },
+                        { fieldtype: 'Data', fieldname: "finish_weight", in_list_view: 1, read_only: 1, label: __('Finish Weight'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "weight_measuring_unit", in_list_view: 0, read_only: 1, label: __('Weight Measuring Unit'), columns: 2 },
                         { fieldtype: 'Float', fieldname: "b_percent", in_list_view: 0, read_only: 1, label: __('B Percent'), columns: 2 },
                         { fieldtype: 'Float',fieldname: "dying_sales_order_qty", in_list_view: 1,read_only: 1,label: __('Sales Order Qty'), columns: 1},                            

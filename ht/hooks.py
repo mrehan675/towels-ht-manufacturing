@@ -126,6 +126,9 @@ doc_events = {
 			"ht.utils.purchase_order.set_placed_order_qty",
 		]
 	},
+	"Purchase Receipt": {
+        "before_save": "ht.utils.purchase_receipt.set_subcontracted_items"
+    }
 	
 }
 

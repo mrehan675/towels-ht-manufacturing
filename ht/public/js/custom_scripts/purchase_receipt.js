@@ -288,6 +288,7 @@ frappe.ui.form.on("Purchase Receipt", {
         
         if (frm.doc.receipt_type == 'Yarn Purchase Receipt'){
             
+            console.log("enter in yarn eceipt");
             fetch_po_for_yarn_purchase_receipt(frm)
 
         }
@@ -340,6 +341,7 @@ frappe.ui.form.on("Purchase Receipt", {
             frm.set_value('purchase_order', '');
         }
     },
+
     onload:function(frm){
         console.log("fg");
         set_link_query(frm);
@@ -415,11 +417,52 @@ frappe.ui.form.on("Purchase Receipt", {
 
     },
     receipt_type:function(frm){
-
+        console.log("enter in receipt event");
         set_purchase_receipt_type(frm);
         console.log("ddd");
-        set_link_query (frm);         
+        set_link_query (frm);
 
+        var po_types = "";
+
+        if (frm.doc.receipt_type == "Dying Purchase Receipt" ){
+            po_types = "Dying Service";
+        }
+        else if (frm.doc.receipt_type == "Accessories Purchase Receipt" ){
+            po_types = "Accessories";
+        }
+        else if (frm.doc.receipt_type == "Bathrobe Purchase Receipt" ){
+            po_types = "Stitching Bathrobe  Service";
+        }
+        else if (frm.doc.receipt_type == "Stitching Purchase Receipt" ){
+            po_types = "Stitching Service";
+        }
+        else if (frm.doc.receipt_type == "Weaving Purchase Receipt"){
+            po_types = "Weaving Service";
+        }
+        else if (frm.doc.receipt_type == "Yarn Dying Purchase Receipt" ){
+            po_types = "Yarn Dying";
+        }
+        else if (frm.doc.receipt_type == "Yarn Purchase Receipt" ){
+            po_types = "Yarn Purchase";
+        }
+
+
+
+
+
+
+        frm.set_query("po_name", function() {
+            if (po_types) {
+            return {
+                filters: {
+                    "purchase_type": po_types,
+                    "supplier":frm.doc.supplier,
+                    "job_number":frm.doc.job_number
+                }
+            }
+        }
+        });
+        
     },
 
     validate:function(frm){
@@ -727,7 +770,7 @@ function set_link_query(frm){
 
 //////////////////////////////////////////////      YARN PURCHASE RECEIPT /////
 const fetch_po_for_yarn_purchase_receipt = (frm) => {
-    if (frm.doc.supplier && frm.doc.receipt_type && frm.doc.job_number) {
+    if (frm.doc.supplier && frm.doc.receipt_type) {
         if(frm.doc.receipt_type == "Yarn Purchase Receipt"){
            var po_type = "Yarn Purchase" 
         }
@@ -752,7 +795,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('PO No'),
-                            columns: 1
+                            columns: 2
                         },
                         {
                             fieldtype: 'Date',
@@ -760,7 +803,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('PO Date'),
-                            columns: 1
+                            columns: 2
                         },
                         {
                             fieldtype: 'Data',
@@ -800,7 +843,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Order Qty'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Data',
@@ -823,7 +866,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Total Received Qty'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Float',
@@ -855,6 +898,30 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Item Row'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "bag_ctn",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Bag-Ctn'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "lbs_bag",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Lbs / Bag'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "uom",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Uom'),
                             columns: 1
                         }
                     ]
@@ -891,6 +958,10 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                             frappe.model.set_value(cdt, cdn, 'color', row.color);
                             frappe.model.set_value(cdt, cdn, 'rate_10_lbs', row.rate_per_lbs);
 
+                            frappe.model.set_value(cdt, cdn, 'bag_ctn', row.bag_ctn);
+                            frappe.model.set_value(cdt, cdn, 'lbs_bag', row.lbs_bag);
+                            frappe.model.set_value(cdt, cdn, 'uom', row.uom);
+
 
                         }
                     }
@@ -907,7 +978,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
             async: false,
             method: "ht.utils.purchase_receipt.fetch_yarn_items",
             args: {
-                job_no: cur_frm.doc.job_number,
+                // job_no: cur_frm.doc.job_number,
                 supplier: cur_frm.doc.supplier,
                 purchase_type: po_type
             },
@@ -930,7 +1001,10 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                                         "rate": row.rate,
                                         "total_received_qty": row.received_qty,
                                         "rate_per_lbs": row.rate_per_10lbs,
-                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0
+                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0,
+                                        "bag_ctn":row.bag_ctn,
+                                        "lbs_bag":row.lbs_bag,
+                                        "uom":row.uom
                                     });
                                     frm.data = dialog.fields_dict.items.df.data;
                                     dialog.fields_dict.items.grid.refresh();
@@ -981,7 +1055,7 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('PO No'),
-                            columns: 1
+                            columns: 2
                         },
                         {
                             fieldtype: 'Date',
@@ -1021,7 +1095,7 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Order Qty'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Data',
@@ -1029,7 +1103,7 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                             in_list_view: 0,
                             read_only: 1,
                             label: __('Rate'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Check',
