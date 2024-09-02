@@ -17,6 +17,9 @@ frappe.ui.form.on('Stock Entry', {
         fetch_job_no(frm)
         }
 
+    },
+    dn_type:function(frm){
+        set_link_query(frm);
     }
 
 
@@ -150,30 +153,101 @@ function set_filter_in_type(frm){
 	
 }
 
-function set_link_query(frm){
+// function set_link_query(frm){
    
 
-        frm.set_query("register_to", function() {
-            return {
-                query: "ht.api.filter_user",
-                filters: {
-                    register_type: "to",
-                    receipt_type: frm.doc.dn_type
-                }
-            };
-        });
+//         frm.set_query("register_to", function() {
+//             return {
+//                 query: "ht.api.filter_user",
+//                 filters: {
+//                     register_type: "to",
+//                     receipt_type: frm.doc.dn_type
+//                 }
+//             };
+//         });
         
 
     
-        frm.set_query("register_from", function() {
-            console.log("purchase yarn");
-            return {
-                query: "ht.api.filter_user",
-                filters: {
-                    register_type: "from",
-                    receipt_type: frm.doc.dn_type
-                }
-            }
-        });
+//         frm.set_query("register_from", function() {
+//             console.log("purchase yarn");
+//             return {
+//                 query: "ht.api.filter_user",
+//                 filters: {
+//                     register_type: "from",
+//                     receipt_type: frm.doc.dn_type
+//                 }
+//             }
+//         });
     
-}
+// }
+
+
+function set_link_query(frm){
+    console.log("query");
+    console.log(frm.doc.dn_type);
+
+    // frm.set_query("register_to", function() {
+    //     return {
+    //         query: "ht.api.filter_user",
+    //         filters: {
+    //             register_type: "to",
+    //             receipt_type: frm.doc.receipt_type
+    //         }
+    //     };
+        
+    // });
+    frappe.call( {
+        method: "frappe.client.get_list",
+        args: {
+            'doctype': "Register",
+            'filters': { 
+            register_type: "to",
+            receipt_type: frm.doc.dn_type},
+            'fields': [
+                'register_name'
+            ]
+        },
+        callback: function( r ) {
+            if ( r.message ) {
+                console.log("r message",r.message);
+                let option_list = [];
+                for ( let i = 0; i < r.message.length; i++ ) {
+
+                    var name = r.message[ i ].register_name;
+                    console.log("name",name);
+                    option_list.push( name );
+                }
+                let register_to_options = [ ...new Set( option_list.sort() ) ];
+                console.log("register_to_options",register_to_options);
+                register_to_options.unshift("");
+                frm.set_df_property( 'registers_to', 'options', register_to_options );
+            }
+        }
+    } );
+
+    frappe.call( {
+        method: "frappe.client.get_list",
+        args: {
+            'doctype': "Register",
+            'filters': { 
+                register_type: "from",
+                receipt_type: frm.doc.dn_type},
+            'fields': [
+                'register_name'
+            ]
+        },
+        callback: function( r ) {
+            if ( r.message ) {
+                let option_list = [];
+                for ( let i = 0; i < r.message.length; i++ ) {
+                    var name = r.message[ i ].register_name;
+                    option_list.push( name );
+                }
+                let register_from_options = [ ...new Set( option_list.sort() ) ];
+                register_from_options.unshift("");
+                
+                frm.set_df_property( 'register_froms', 'options', register_from_options );
+            }
+        }
+    } );
+} 
