@@ -457,6 +457,46 @@ def fetch_dying_service_items(job_no, purchase_type, supplier):
 
 
 
+@frappe.whitelist()
+def fetch_bathrobe_items(job_no, purchase_type, supplier):
+    raw_list = []
+    
+    raw_list = frappe.db.sql(""" 
+        SELECT
+			po.name AS purchase_order,
+			po_it.name AS item_row_name,
+            po_it.parent AS po_name,
+            po.transaction_date AS po_date,
+            po_it.item_code AS item_code,
+			po_it.item_name As item_name,
+			po_it.description As description,
+			po_it.job_no,						 
+			po_it.uom,
+			po_it.finish_weight,
+			po_it.cut_length,	
+			po_it.color,		
+			po_it.qty,				 
+			po_it.received_qty,			
+			po_it.rate
+			
+            
+            
+           
+            
+        FROM
+            `tabPurchase Order Item` AS po_it
+        JOIN
+            `tabPurchase Order` AS po
+        ON
+            po.name = po_it.parent
+        WHERE
+            po.job_number = %s AND
+            po.purchase_type = %s AND
+            po.supplier = %s
+    """, (job_no, purchase_type, supplier), as_dict=1)
+
+
+    return raw_list
 
 
 

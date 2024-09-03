@@ -306,6 +306,10 @@ frappe.ui.form.on("Purchase Receipt", {
         else if(frm.doc.receipt_type == 'Dying Purchase Receipt'){
             fetch_po_dying_purchase_receipt(frm)
         }
+        else if(frm.doc.receipt_type == 'Bathrobe Purchase Receipt' || frm.doc.receipt_type == 'Stitching Purchase Receipt' ){
+            fetch_po_stitching_bathrobe_purchase_receipt(frm)
+            //Stitching Bathrobe  Service
+        }
         else{
             frappe.throw("Please Select Receipt Type")
         }
@@ -1904,6 +1908,233 @@ const fetch_po_dying_purchase_receipt = (frm) => {
 
 
 
+///////////////////////////////////////////Bathrobe Purchase Receipt /////////////////////
+const fetch_po_stitching_bathrobe_purchase_receipt = (frm) => {
+    if (frm.doc.supplier && frm.doc.receipt_type && frm.doc.job_number) {
+        if(frm.doc.receipt_type == "Bathrobe Purchase Receipt"){
+           var po_type = "Stitching Bathrobe  Service" 
+        }
+        if(frm.doc.receipt_type == "Stitching Purchase Receipt"){
+            var po_type = "Stitching Service"
+        }
+  
+        frm.data = [];
+        let dialog = new frappe.ui.Dialog({ 
+            title: __("Purchase Order"),
+            fields: [
+                {
+                    fieldname: "items",
+                    read_only: 1,
+                    label: 'Purchase Order Items',
+                    fieldtype: "Table",
+                    cannot_add_rows: true,
+                    data: frm.data,
+                    get_data: () => {
+                        return frm.data;
+                    },
+                    fields: [
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "po_name", 
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('PO No'),
+                            columns:   2
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "job_no", 
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Job No'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "color",
+                            in_list_view: 0,
+                            read_only: 1,
+                            label: __('Color'),
+                            columns: 2
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "item_code",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Item Code'),
+                            columns: 2
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "uom",
+                            in_list_view: 0,
+                            read_only: 1,
+                            label: __('Uom'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "item_name",
+                            in_list_view: 0,
+                            read_only: 1,
+                            label: __('Item Name'),
+                            columns: 2
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "decription",
+                            in_list_view: 0,
+                            read_only: 1,
+                            label: __('Description'),
+                            columns: 2
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "qty",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Order Qty'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "rate",
+                            in_list_view: 0,
+                            read_only: 1,
+                            label: __('Rate'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Check',
+                            fieldname: "check",
+                            label: __('Select'),
+                            in_list_view: 1,
+                            columns: 1,
+                        },
+                        {
+                            fieldtype: 'Float',
+                            fieldname: "total_received_qty",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Total Received Qty'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Float',
+                            fieldname: "balance_qty", 
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Balance Qty'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "cut_length", 
+                            in_list_view: 0,
+                            read_only: 0,
+                            label: __('Cut Length'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "finish_weight", 
+                            in_list_view: 0,
+                            read_only: 0,
+                            label: __('Finish Weight'),
+                            columns: 1
+                        },
+                    ]
+                }
+            ],
+            primary_action_label: 'Get Items',
+            primary_action(values) {
+                if (values.items) {
+                    let po_check_itemslist = [];
+                    for (let row of values.items) {
+                        if (row.check == 1) {
+                            let child = frm.add_child('items');
+                            let cdt = child.doctype;
+                            let cdn = child.name;
+
+                            // po_check_itemslist.push(row.dye_raw_mat_item_code);po_name
+                           
+                            frappe.model.set_value(cdt, cdn, 'purchase_order_item', row.item_row_name);
+                            frappe.model.set_value(cdt, cdn, 'purchase_order', row.po_name);
+                            frappe.model.set_value(cdt, cdn, 'job_no', row.job_no);
+
+                            frappe.model.set_value(cdt, cdn, 'item_code', row.item_code);
+                            frappe.model.set_value(cdt, cdn, 'item_name', row.item_name);
+                            frappe.model.set_value(cdt, cdn, 'description', row.description);
+                            frappe.model.set_value(cdt, cdn, 'uom', row.uom);                            
+                            frappe.model.set_value(cdt, cdn, 'fancy', row.cut_length);
+                            frappe.model.set_value(cdt, cdn, 'yarn_color', row.color);
+                            frappe.model.set_value(cdt, cdn, 'qty', row.qty);
+                            frappe.model.set_value(cdt, cdn, 'finish_weight_unit', row.finish_weight);
+                            setTimeout(function() {
+                                frappe.model.set_value(cdt, cdn, 'rate', row.rate);
+                                frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
+                            }, 1000); // Delay of 1000 milliseconds
+
+                            
+                        }
+                    }
+
+
+
+                    cur_frm.refresh_field('items');
+                    dialog.hide();
+                }
+            }
+        });
+
+        frappe.call({
+            async: false,
+            method: "ht.utils.purchase_receipt.fetch_bathrobe_items",
+            args: {
+                job_no: cur_frm.doc.job_number,
+                supplier: cur_frm.doc.supplier,
+                purchase_type: po_type
+            },
+            callback: function (r) {
+                if (r.message) {
+                    for (let row of r.message) {
+                        console.log("ROw",row);
+                        // frappe.db.get_doc('Item', row.raw_mat_item)
+                            // .then(itm_doc => {
+                                setTimeout(() => {
+                                    dialog.fields_dict.items.df.data.push({
+                                        "po_name":row.purchase_order,
+                                        "item_row_name": row.item_row_name,
+                                        "po_date": row.po_date,
+                                        "item_code": row.item_code,
+                                        "item_name": row.item_name,
+                                        "description":row.description,
+                                        "finish_weight": row.finish_weight,
+                                        "cut_length": row.cut_length,                             
+                                        "color": row.color,
+                                        "qty": row.qty,
+                                        "rate":row.rate,
+                                        "job_no": row.job_no,
+                                        "uom": row.uom,
+                                        "total_received_qty": row.received_qty,                                        
+                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0
+                                    });
+                                    frm.data = dialog.fields_dict.items.df.data;
+                                    dialog.fields_dict.items.grid.refresh();
+                                }, 500);
+                            // });
+                    }
+                    dialog.show();
+                    dialog.$wrapper.find('.modal-dialog').css("max-width", "70%");
+                }
+            }
+        });
+
+    } else {
+        frappe.msgprint('Please Select Supplier / Job No and Purchase type');
+    }
+}
 
 
 
