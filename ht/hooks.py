@@ -42,10 +42,11 @@ app_license = "MIT"
 doctype_js = {
 	"Sales Order" : "public/js/custom_scripts/sales_order.js",
     "Purchase Order" : "public/js/custom_scripts/purchase_order.js",
-	 "Purchase Receipt" : "public/js/custom_scripts/purchase_receipt.js",
-	 "Stock Entry" : "public/js/custom_scripts/stock_entry.js",
-	 "Supplier" : "public/js/custom_scripts/supplier.js",
-	"Item" : "public/js/custom_scripts/item.js"
+	"Purchase Receipt" : "public/js/custom_scripts/purchase_receipt.js",
+	"Stock Entry" : "public/js/custom_scripts/stock_entry.js",
+	"Supplier" : "public/js/custom_scripts/supplier.js",
+	"Item" : "public/js/custom_scripts/item.js",
+	"Budgeting" : "public/js/custom_scripts/budgeting.js"
 
 
 }

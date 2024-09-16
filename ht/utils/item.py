@@ -1,117 +1,254 @@
 import frappe
 import json
 from console import console
-
-from erpnext.controllers.item_variant  import generate_keyed_value_combinations,get_variant,copy_attributes_to_variant,make_variant_item_code
-
+from erpnext.controllers.item_variant import generate_keyed_value_combinations, get_variant, copy_attributes_to_variant, make_variant_item_code
 from six import string_types
-
 
 
 @frappe.whitelist()
 def enqueue_multiple_variant_creation(item, args):
+    console("enter Custom").log()
 
-	console("enter Custom").log()
-
-
-	# There can be innumerable attribute combinations, enqueue
-	if isinstance(args, string_types):
-		variants = json.loads(args)
-	total_variants = 1
-	for key in variants:
-		total_variants *= len(variants[key])
-	if total_variants >= 600:
-		frappe.throw(_("Please do not create more than 500 items at a time"))
-		return
-	if total_variants < 10:
-		return create_multiple_variants(item, args)
-	else:
-		frappe.enqueue(
-			"ht.utils.item.create_multiple_variants",
-			item=item,
-			args=args,
-			now=frappe.flags.in_test,
-		)
-		return "queued"
+    # There can be innumerable attribute combinations, enqueue
+    if isinstance(args, string_types):
+        variants = json.loads(args)
+    
+    total_variants = 1
+    for key in variants:
+        total_variants *= len(variants[key])
+    
+    if total_variants >= 600:
+        frappe.throw(_("Please do not create more than 500 items at a time"))
+        return
+    
+    if total_variants < 10:
+        return create_multiple_variants(item, args)
+    else:
+        frappe.enqueue(
+            "ht.utils.item.create_multiple_variants",
+            item=item,
+            args=args,
+            now=frappe.flags.in_test,
+        )
+        return "queued"
 
 
 def create_multiple_variants(item, args):
-	count = 0
-	if isinstance(args, string_types):
-		args = json.loads(args)
+    count = 0
+    if isinstance(args, string_types):
+        args = json.loads(args)
 
-	args_set = generate_keyed_value_combinations(args)
+    # Step 1: Create color variants first
+    color_variants_map = create_multiple_color_variants(item, args)
 
-	create_multiple_color_variants(item, args)
-	console("args_set",args_set).log()
+    # Step 2: Generate and process non-color variants
+    args_set = generate_keyed_value_combinations(args)
+    console("args_set", args_set).log()
 
-	for attribute_values in args_set:
-		console("attribute_values",attribute_values).log()
-		if not get_variant(item, args=attribute_values):
-			variant = create_variant(item, attribute_values)
-			variant.save()
-			count += 1
+    for attribute_values in args_set:
+        console("attribute_values", attribute_values).log()
 
-	return count
+        # Get the color value for the current variant
+        color_value = attribute_values.get("Colour")
 
-# Custom work
+        # Set the item_colour_variant if color variant exists
+        if color_value in color_variants_map:
+            color_variant_name = color_variants_map[color_value]
+            attribute_values["item_colour_variant"] = color_variant_name
+
+        if not get_variant(item, args=attribute_values):
+            variant = create_variant(item, attribute_values)
+            variant.save()
+            count += 1
+
+    return count
+
+
 def create_multiple_color_variants(item, args):
-	console("enter Custom").log()
-	count = 0
-	if isinstance(args, string_types):
-		args = json.loads(args)
+    console("enter Custom - Create Color Variants").log()
+    count = 0
+    color_variants_map = {}
+    
+    if isinstance(args, string_types):
+        args = json.loads(args)
 
-	# Filter args to include only the "Colour" attribute
-	color_args = {k: v for k, v in args.items() if k == "Colour"}
-	console("color_args",color_args).log()
+    # Filter args to include only the "Colour" attribute
+    color_args = {k: v for k, v in args.items() if k == "Colour"}
+    console("color_args", color_args).log()
 
-	# Generate combinations only for the "Colour" attribute
-	args_set = generate_keyed_value_combinations(color_args)
+    # Generate combinations only for the "Colour" attribute
+    args_set = generate_keyed_value_combinations(color_args)
+    console("args_set", args_set).log()
 
-	console("args_set",args_set).log()
+    # Create and save color variants
+    for attribute_values in args_set:
+        console("attribute_values", attribute_values).log()
+        color_value = attribute_values.get("Colour")
 
-	for attribute_values in args_set:
-		console("attribute_values",attribute_values).log()
-		if not get_variant(item, args=attribute_values):
-			variant = create_variant(item, attribute_values)
-			variant.save()
-			count += 1
+        if not get_variant(item, args=attribute_values):
+            variant = create_variant(item, attribute_values)
+            variant.save()
+            count += 1
 
-	return count
+            # Store the color variant name to map the color attribute
+            color_variants_map[color_value] = variant.name
 
-
-
+    return color_variants_map
 
 
 def create_variant(item, args):
-	console("enter in my create variant function").log()
-	if isinstance(args, string_types):
-		args = json.loads(args)
+    console("enter in my create variant function").log()
+    
+    if isinstance(args, string_types):
+        args = json.loads(args)
 
-	template = frappe.get_doc("Item", item)
-	variant = frappe.new_doc("Item")
-	variant.variant_based_on = "Item Attribute"
-	variant_attributes = []
+    template = frappe.get_doc("Item", item)
+    variant = frappe.new_doc("Item")
+    variant.variant_based_on = "Item Attribute"
+    variant_attributes = []
 
-	for d in template.attributes:
-		variant_attributes.append({"attribute": d.attribute, "attribute_value": args.get(d.attribute)})
+    for d in template.attributes:
+        variant_attributes.append({"attribute": d.attribute, "attribute_value": args.get(d.attribute)})
 
-	variant.set("attributes", variant_attributes)
-	copy_attributes_to_variant(template, variant)
-	make_variant_item_code(template.item_code, template.item_name, variant)
+    variant.set("attributes", variant_attributes)
+    copy_attributes_to_variant(template, variant)
+    make_variant_item_code(template.item_code, template.item_name, variant)
 
-	console("variant",variant).log()
+    console("variant", variant).log()
 
-	variant.is_sub_contracted_item = 1
+    # Assign subcontracted item flag or other customizations
+    variant.is_sub_contracted_item = 1
 
-	# Check if the item name contains '-ST'
-	if "-ST" in variant.item_name:
-		console("enter in variant check").log()
-		# Remove '-ST' from the item name and set it to item_color_variant
-		variant.item_colour_variant = variant.item_name.replace("-ST", "").strip()
+    # Set the item_colour_variant if applicable
+    if "item_colour_variant" in args:
+        variant.item_colour_variant = args.get("item_colour_variant")
+
+    return variant
 
 
-	return variant
+
+
+
+
+
+
+
+
+
+# import frappe
+# import json
+# from console import console
+
+# from erpnext.controllers.item_variant  import generate_keyed_value_combinations,get_variant,copy_attributes_to_variant,make_variant_item_code
+
+# from six import string_types
+
+
+
+# @frappe.whitelist()
+# def enqueue_multiple_variant_creation(item, args):
+
+# 	console("enter Custom").log()
+
+
+# 	# There can be innumerable attribute combinations, enqueue
+# 	if isinstance(args, string_types):
+# 		variants = json.loads(args)
+# 	total_variants = 1
+# 	for key in variants:
+# 		total_variants *= len(variants[key])
+# 	if total_variants >= 600:
+# 		frappe.throw(_("Please do not create more than 500 items at a time"))
+# 		return
+# 	if total_variants < 10:
+# 		return create_multiple_variants(item, args)
+# 	else:
+# 		frappe.enqueue(
+# 			"ht.utils.item.create_multiple_variants",
+# 			item=item,
+# 			args=args,
+# 			now=frappe.flags.in_test,
+# 		)
+# 		return "queued"
+
+
+# def create_multiple_variants(item, args):
+# 	count = 0
+# 	if isinstance(args, string_types):
+# 		args = json.loads(args)
+
+# 	args_set = generate_keyed_value_combinations(args)
+
+# 	create_multiple_color_variants(item, args)
+# 	console("args_set",args_set).log()
+
+# 	for attribute_values in args_set:
+# 		console("attribute_values",attribute_values).log()
+# 		if not get_variant(item, args=attribute_values):
+# 			variant = create_variant(item, attribute_values)
+# 			variant.save()
+# 			count += 1
+
+# 	return count
+
+# # Custom work
+# def create_multiple_color_variants(item, args):
+# 	console("enter Custom").log()
+# 	count = 0
+# 	if isinstance(args, string_types):
+# 		args = json.loads(args)
+
+# 	# Filter args to include only the "Colour" attribute
+# 	color_args = {k: v for k, v in args.items() if k == "Colour"}
+# 	console("color_args",color_args).log()
+
+# 	# Generate combinations only for the "Colour" attribute
+# 	args_set = generate_keyed_value_combinations(color_args)
+
+# 	console("args_set",args_set).log()
+
+# 	for attribute_values in args_set:
+# 		console("attribute_values",attribute_values).log()
+# 		if not get_variant(item, args=attribute_values):
+# 			variant = create_variant(item, attribute_values)
+# 			variant.save()
+# 			count += 1
+
+# 	return count
+
+
+
+
+
+# def create_variant(item, args):
+# 	console("enter in my create variant function").log()
+# 	if isinstance(args, string_types):
+# 		args = json.loads(args)
+
+# 	template = frappe.get_doc("Item", item)
+# 	variant = frappe.new_doc("Item")
+# 	variant.variant_based_on = "Item Attribute"
+# 	variant_attributes = []
+
+# 	for d in template.attributes:
+# 		variant_attributes.append({"attribute": d.attribute, "attribute_value": args.get(d.attribute)})
+
+# 	variant.set("attributes", variant_attributes)
+# 	copy_attributes_to_variant(template, variant)
+# 	make_variant_item_code(template.item_code, template.item_name, variant)
+
+# 	console("variant",variant).log()
+
+# 	variant.is_sub_contracted_item = 1
+
+# 	#Check if the item name contains '-ST'
+# 	if "-ST" in variant.item_name:
+# 		console("enter in variant check").log()
+# 		# Remove '-ST' from the item name and set it to item_color_variant
+# 		variant.item_colour_variant = variant.item_name.replace("-ST", "").strip()
+
+
+# 	return variant
 
 
 
