@@ -6,6 +6,24 @@ from frappe.utils import flt
 
 
 
+@frappe.whitelist()
+def set_child_itemlist(pr_name):
+    print("pr_name", pr_name)
+    if pr_name:
+        print("pass first if")
+        
+        # Fetch the Purchase Receipt document using the correct doctype and name
+        item_doc = frappe.get_doc("Purchase Receipt", pr_name)  # Assuming "Purchase Receipt" is the correct DocType
+        
+        if item_doc:
+            print("pass second if")
+            # Assuming you are accessing the child table called 'items' in the Purchase Receipt
+            item_code_list = [d.item_code for d in item_doc.items]
+            print("item_code_list", item_code_list)
+            
+            return item_code_list
+
+
 def set_subcontracted_items(doc, method):
 	if not doc.purchase_order:
 		return

@@ -283,6 +283,11 @@ frappe.ui.form.on("Purchase Receipt", {
         
 
     // },
+    refresh: function(frm){
+        if (!frm.is_new()) {
+        fetch_grn_items(frm);
+        }
+    },
     //button
     get_item_from_po: function(frm){
         
@@ -363,6 +368,14 @@ frappe.ui.form.on("Purchase Receipt", {
 				]
 			}
 		});
+
+        frm.set_query("po_type", function() {
+			return {
+				filters: [
+					["Order Type","type", "in", ["Purchase Order"]]
+				]
+			}
+		});
       
         
 	},
@@ -373,7 +386,8 @@ frappe.ui.form.on("Purchase Receipt", {
 
         if (frm.doc.auto_stock_transfer) {
 
-        _make_rm_stock_entry(frm);
+        // Comment stock entry creation work due to Get PO dialogue work.
+        // _make_rm_stock_entry(frm);
         function _make_rm_stock_entry(frm) {
             console.log(frm.doc.purchase_order);
             console.log(cur_frm.doc.purchase_order);
@@ -531,8 +545,42 @@ frappe.ui.form.on("Purchase Receipt", {
     }
 
 });
+
     
     
+function fetch_grn_items(frm) {
+
+        console.log("enter in items ss");
+    frappe.call({
+        method: "ht.utils.purchase_receipt.set_child_itemlist",
+        args: {
+            "pr_name": frm.doc.name
+        },
+        callback: function(response) {
+            if (response.message) {
+                // Clear the current options of the select field
+                // frm.clear_table('grn_item');
+                
+                // Dynamically add item_code options
+                let item_codes = response.message;
+
+                // Set the options of the grn_item select field
+                frm.set_df_property('grn_item', 'options', item_codes.join('\n'));
+                
+                // Alternatively, you can loop and add each option (if needed)
+                /*
+                item_codes.forEach(function(item_code) {
+                    frm.add_custom_option('grn_item', item_code);
+                });
+                */
+                frm.refresh_field('grn_item'); // Refresh the field to apply the changes
+            }
+        }
+    });
+
+
+
+}
 
 
 
