@@ -350,6 +350,39 @@ def fetch_weave_items(job_no, purchase_type, supplier):
     return raw_list
 
 
+@frappe.whitelist()
+def fetch_supplied_items(stock_supplier, po_type):
+	
+    console("Supplier",stock_supplier).log()
+    console("Po type",po_type).log()
+   
+    result = []
+
+    po_list = frappe.db.sql("""
+        SELECT name
+        FROM `tabPurchase Order`
+        WHERE supplier = %s AND purchase_type = %s
+    """, (stock_supplier, po_type), as_dict=True)
+
+    console("PO List",po_list).log()
+
+
+    if po_list:
+        po_names = [po['name'] for po in po_list]
+
+        result = frappe.db.sql("""
+            SELECT 
+                si.main_item_code,si.rm_item_code, si.required_qty, si.supplied_qty,si.parent,si.name,
+                i.finish_weight_unit
+            FROM 
+                `tabPurchase Order Item Supplied` si
+            JOIN 
+                `tabPurchase Order Item` i ON si.parent = i.parent
+            WHERE 
+                si.parent IN (%s) 
+        """ % ','.join(['%s'] * len(po_names)), tuple(po_names), as_dict=True)
+
+    return result
 
 
 @frappe.whitelist()

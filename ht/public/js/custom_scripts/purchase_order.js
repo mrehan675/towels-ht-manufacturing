@@ -41,6 +41,7 @@ frappe.ui.form.on("Purchase Order", {
     },
     refresh: function(frm){
         update_qty_label(frm);
+        filter_item_table_field_based_on_purchase_type(frm)
 
     },
 
@@ -361,7 +362,11 @@ frappe.ui.form.on('Purchase Order', {
             // cal_yarn_amount(frm,cdt,cdn);
             set_gross_lbs(frm, cdt, cdn);
            
-         }
+        },
+        item_code: function(frm) {
+
+            filter_item_table_field_based_on_purchase_type(frm)
+        }
         
          
         
@@ -369,6 +374,20 @@ frappe.ui.form.on('Purchase Order', {
     });
 
 
+    function filter_item_table_field_based_on_purchase_type(frm){
+
+        console.log("dssww");
+        frm.set_query("item_code", "items", function() {
+            if (frm.doc.purchase_type == "Accessories") {
+                return {
+                    filters: [
+                        ["Item", "item_group", "in", ["Accessories","Genral Items"]]
+                    ]
+                };
+            }
+        });
+
+    }
     
     function set_consumption_meter(frm){
    

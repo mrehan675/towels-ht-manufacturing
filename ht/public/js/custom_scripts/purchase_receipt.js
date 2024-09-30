@@ -321,6 +321,10 @@ frappe.ui.form.on("Purchase Receipt", {
 
        
     },
+    //buttom
+    fetch_po_items: function(frm){
+        fetch_po_supplied_items(frm);
+    },
     supplier: function(frm) {
         if (frm.doc.supplier) {
             // Fetch the linked warehouse for the selected supplier
@@ -443,34 +447,7 @@ frappe.ui.form.on("Purchase Receipt", {
         console.log("ddd");
         set_link_query (frm);
 
-        var po_types = "";
-
-        if (frm.doc.receipt_type == "Dying Purchase Receipt" ){
-            po_types = "Dying Service";
-        }
-        else if (frm.doc.receipt_type == "Accessories Purchase Receipt" ){
-            po_types = "Accessories";
-        }
-        else if (frm.doc.receipt_type == "Bathrobe Purchase Receipt" ){
-            po_types = "Stitching Bathrobe  Service";
-        }
-        else if (frm.doc.receipt_type == "Stitching Purchase Receipt" ){
-            po_types = "Stitching Service";
-        }
-        else if (frm.doc.receipt_type == "Weaving Purchase Receipt"){
-            po_types = "Weaving Service";
-        }
-        else if (frm.doc.receipt_type == "Yarn Dying Purchase Receipt" ){
-            po_types = "Yarn Dying";
-        }
-        else if (frm.doc.receipt_type == "Yarn Purchase Receipt" ){
-            po_types = "Yarn Purchase";
-        }
-
-
-
-
-
+        let po_types = set_po_based_on_pr_type(frm.doc.receipt_type);
 
         frm.set_query("po_name", function() {
             if (po_types) {
@@ -487,7 +464,6 @@ frappe.ui.form.on("Purchase Receipt", {
     },
 
     validate:function(frm){
-        console.log("checkiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
 
         if (frm.doc.receipt_type == 'Yarn Purchase Receipt' || frm.doc.receipt_type == 'Weaving Purchase Receipt' || frm.doc.receipt_type == 'Dying Purchase Receipt' || frm.doc.receipt_type=='Stitching Purchase Receipt'){
             set_purchase_receipt_type(frm);
@@ -546,7 +522,36 @@ frappe.ui.form.on("Purchase Receipt", {
 
 });
 
+
+
+
+function set_po_based_on_pr_type(receipt_type) {
+    let po_types = ""; 
     
+    if (receipt_type == "Dying Purchase Receipt") {
+        po_types = "Dying Service";
+    } 
+    else if (receipt_type == "Accessories Purchase Receipt") {
+        po_types = "Accessories";
+    } 
+    else if (receipt_type == "Bathrobe Purchase Receipt") {
+        po_types = "Stitching Bathrobe Service";
+    } 
+    else if (receipt_type == "Stitching Purchase Receipt") {
+        po_types = "Stitching Service";
+    } 
+    else if (receipt_type == "Weaving Purchase Receipt") {
+        po_types = "Weaving Service";
+    } 
+    else if (receipt_type == "Yarn Dying Purchase Receipt") {
+        po_types = "Yarn Dying";
+    } 
+    else if (receipt_type == "Yarn Purchase Receipt") {
+        po_types = "Yarn Purchase";
+    }
+
+    return po_types;
+}    
     
 function fetch_grn_items(frm) {
 
@@ -821,6 +826,220 @@ function set_link_query(frm){
         }
     } );
 } 
+
+
+
+////////////////////////////////////////Auto Stock Entry Work//////////////////
+   
+const fetch_po_supplied_items = (frm) => {
+    if (frm.doc.stock_supplier_ && frm.doc.po_type) {
+        
+        frm.data = [];
+        let dialog = new frappe.ui.Dialog({
+            title: __("Auto Stock Entry"),
+        
+
+            fields: [
+                {
+                    fieldtype: 'Data',
+                    fieldname: 'item_name',
+                    read_only: 1,
+                    columns: 1,
+                    label: __('Item Name'),
+                    default: frm.doc.grn_item
+                },
+                {
+                    fieldtype: 'Column Break'  // This adds the column break
+                },
+                {
+                    fieldtype: 'Float',
+                    fieldname: 'qty',
+                    read_only: 1,
+                    columns: 1,
+                    label: __('Qty')
+                },
+                {
+                    fieldtype: 'Section Break'  // This adds the column break
+                },
+                {
+                    fieldname: "items",
+                    read_only: 1,
+                    label: 'Purchase Order Supplied Items',
+                    fieldtype: "Table",
+                    cannot_add_rows: true,
+                    data: frm.data,
+                    get_data: () => {
+                        return frm.data;
+                    },
+                    fields: [
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "po_name", 
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('PO No'),
+                            columns: 2
+                        },
+                    
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "item_code",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Item Code'),
+                            columns: 2
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "finish_weight_unit",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Finish Weight'),
+                            columns: 1
+                        },
+            
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "required_qty",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Required Qty'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "supplied_qty",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Supplied Qty'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Check',
+                            fieldname: "check",
+                            label: __('Select'),
+                            in_list_view: 1,
+                            columns: 1,
+                        },
+                    
+                        {
+                            fieldtype: 'Float',
+                            fieldname: "balance_qty", 
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Balance Qty'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "item_row_name", 
+                            in_list_view: 0,
+                            read_only: 1,
+                            label: __('Row Name'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "parent_item_code",
+                            in_list_view: 0,
+                            read_only: 1,
+                            label: __('Parent Item'),
+                            columns: 2
+                        },
+                        
+                    ]
+                }
+            ],
+            primary_action_label: 'Create Stock Entry',
+            primary_action(values) {
+                if (values.items) {
+                    let po_check_itemslist = [];
+                    for (let row of values.items) {
+                        if (row.check == 1) {
+                            let child = frm.add_child('items');
+                            let cdt = child.doctype;
+                            let cdn = child.name;
+
+                            // po_check_itemslist.push(row.dye_raw_mat_item_code);po_name
+                           
+                            frappe.model.set_value(cdt, cdn, 'purchase_order_item', row.item_row_name);
+                            frappe.model.set_value(cdt, cdn, 'purchase_order', row.po_name);
+                            frappe.model.set_value(cdt, cdn, 'item_code', row.item_code);
+                            frappe.model.set_value(cdt, cdn, 'item_name', row.item_name);
+                            frappe.model.set_value(cdt, cdn, 'description', row.description);
+
+
+                            frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
+                            frappe.model.set_value(cdt, cdn, 'qty', row.balance_qty);
+                            setTimeout(function() {
+                                frappe.model.set_value(cdt, cdn, 'rate', row.rate);
+                                frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
+                            }, 1500); // Delay of 1000 milliseconds
+                            
+
+                            frappe.model.set_value(cdt, cdn, 'greigh_weigh_unit', row.greigh_weigh_unit);
+                            frappe.model.set_value(cdt, cdn, 'finish_weight_unit', row.finish_weight_unit);
+
+                        }
+                    }
+
+
+
+                    cur_frm.refresh_field('items');
+                    dialog.hide();
+                }
+            }
+        });
+       
+        
+       
+        frappe.call({
+            async: false,
+            method: "ht.utils.purchase_receipt.fetch_supplied_items",
+            args: {
+                stock_supplier: cur_frm.doc.stock_supplier_,
+                po_type: cur_frm.doc.po_type
+                
+            },
+            callback: function (r) {
+                if (r.message) {
+                    for (let row of r.message) {
+                        console.log("ROw",row);
+                        // frappe.db.get_doc('Item', row.raw_mat_item)
+                            // .then(itm_doc => {
+                                setTimeout(() => {
+                                    dialog.fields_dict.items.df.data.push({
+                                        "po_name":row.parent,
+                                        "item_row_name": row.name,
+                                        // "po_date": row.po_date,                                       
+                                        "parent_item_code":row.main_item_code,
+                                        "item_code": row.rm_item_code,
+                                        "required_qty": row.required_qty,
+                                        "supplied_qty": row.supplied_qty,
+                                        "finish_weight_unit": row.finish_weight_unit,
+                                        "balance_qty": ((row.required_qty) - (row.supplied_qty)) || 0
+                                    });
+                                    frm.data = dialog.fields_dict.items.df.data;
+                                    dialog.fields_dict.items.grid.refresh();
+                                }, 500);
+                            // });
+                    }
+                    dialog.show();
+                    dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
+                }
+            }
+        });
+
+    } else {
+        frappe.msgprint('Please Select Supplier / Job No and Purchase type');
+    }
+}
+
+
+
+
+
+
 
 
 //////////////////////////////////////////////      YARN PURCHASE RECEIPT /////
