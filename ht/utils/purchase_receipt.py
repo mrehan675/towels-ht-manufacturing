@@ -53,7 +53,7 @@ def set_subcontracted_items(doc, method):
 
 
 @frappe.whitelist()
-def make_rm_stock_entry(purchase_order, items):
+def make_rm_stock_entry(purchase_order, items,purchase_receipt):
 	console("hdddddddddddd").log()
 	console("purchase_order",purchase_order).log()
 	console("items",items).log()
@@ -65,10 +65,10 @@ def make_rm_stock_entry(purchase_order, items):
 
 	# rm_items_list = rm_items
 
-	if isinstance(rm_items, str):
-		rm_items_list = json.loads(rm_items)
-	elif not rm_items:
-		frappe.throw(_("No Items available for transfer"))
+	# if isinstance(rm_items, str):
+	# 	rm_items_list = json.loads(rm_items)
+	# elif not rm_items:
+	# 	frappe.throw(_("No Items available for transfer"))
 
 	if isinstance(items, str):
 		grn_items_list = json.loads(items)
@@ -76,37 +76,46 @@ def make_rm_stock_entry(purchase_order, items):
 	elif not grn_items_list:
 		frappe.throw(_("No Items available for transfer"))
 
-	if rm_items_list:
-		fg_items = list(set(d["rm_item_code"] for d in rm_items_list))
+	if grn_items_list:
+		# fg_items = list(set(d["rm_item_code"] for d in grn_items_list))
+		fg_items = list(set(d["item_code"] for d in grn_items_list))
+
 	else:
 		frappe.throw(_("No Items selected for transfer"))
 
 	if purchase_order:
 		purchase_order = frappe.get_doc("Purchase Order", purchase_order)
-
+	if purchase_receipt:
+		purchase_receipt = frappe.get_doc("Purchase Receipt", purchase_receipt)		
+    
 	if fg_items:
-		items = tuple(set(d["rm_item_code"] for d in rm_items_list))
+		items = tuple(set(d["item_code"] for d in grn_items_list))
 		item_wh = get_item_details(items)
+		
 
 		stock_entry = frappe.new_doc("Stock Entry")
 		stock_entry.purpose = "Send to Subcontractor"
+		stock_entry.stock_entry_type = "Send to Subcontractor"
 		stock_entry.purchase_order = purchase_order.name
-		stock_entry.supplier = purchase_order.supplier
-		stock_entry.supplier_name = purchase_order.supplier_name
-		stock_entry.supplier_address = purchase_order.supplier_address
-		stock_entry.address_display = purchase_order.address_display
+		stock_entry.supplier = purchase_receipt.stock_supplier_  
+		stock_entry.supplier_name = purchase_receipt.stock_supplier_ 
+		# stock_entry.supplier_address = purchase_order.supplier_address
+		# stock_entry.address_display = purchase_order.address_display
 		stock_entry.company = purchase_order.company
-		stock_entry.to_warehouse = purchase_order.supplier_warehouse
+		stock_entry.from_warehouse = purchase_receipt.supplier_warehouse
+		stock_entry.to_warehouse = purchase_receipt.set_warehouse
 		stock_entry.dn_type = "Stock Yarn Dying"
 		stock_entry.set_stock_entry_type()
 
 		for item_code in fg_items:
 			for rm_item_data in rm_items_list:
 				if rm_item_data["rm_item_code"] == item_code:
+					console("enter in if item code",).log()
 					rm_item_code = rm_item_data["rm_item_code"]
+					rm_item_row_name = rm_item_data["name"]
 					
 					
-					matching_item = next((item for item in grn_items_list if item["item_code"] == rm_item_code), None)
+					matching_item = next((item for item in grn_items_list if item["item_code"] == rm_item_code and item["item_row_name"] == rm_item_row_name ), None)
 					qty = 0
 					console("matching_item",matching_item).log()
 					# if matching_item:
@@ -129,21 +138,25 @@ def make_rm_stock_entry(purchase_order, items):
 
 					if matching_item:
 						console("Matching item found", matching_item).log()
-						qty = matching_item.get("qty", 0)
+						qty = matching_item.get("supplied_qty", 0)
+						
 
-						if qty > 0:
+						if qty :
 							items_dict = {
 								"item_code": rm_item_code,
 								"po_detail": rm_item_data.get("name"),
 								"item_name": item_wh.get(rm_item_code, {}).get("item_name", ""),
 								"description": item_wh.get(rm_item_code, {}).get("description", ""),
 								"qty": qty,
-								"s_warehouse": rm_item_data["reserve_warehouse"],
+								# "s_warehouse": rm_item_data["reserve_warehouse"],
+								"s_warehouse": "A & M Packages - HT_SB",
+
 								"t_warehouse": "GHafoor Bhai Weaving Service - HT_SB",
 								"stock_uom": rm_item_data["stock_uom"],
 								"subcontracted_item": rm_item_data["main_item_code"],
 								"allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
 							}
+							console("Required Items",items_dict).log()
 							stock_entry.append("items", items_dict)
 							update_supplied_qty(rm_item_data["name"], qty)
 					else:
@@ -201,7 +214,8 @@ def get_supplied_items(purchase_order):
             po_item.reserve_warehouse,
             po_item.stock_uom,
             po_item.name,
-            po_item.rm_item_code
+            po_item.rm_item_code,
+			po_item.name
         FROM
             `tabPurchase Order Item Supplied` po_item
         WHERE
@@ -234,7 +248,7 @@ def update_supplied_qty(po_detail, qty):
     # Fetch current supplied_qty
     current_supplied_qty = frappe.db.get_value("Purchase Order Item Supplied", po_detail, "supplied_qty") or 0
     # Add the new qty to the current supplied_qty
-    new_supplied_qty = current_supplied_qty + qty
+    new_supplied_qty = float(current_supplied_qty) + float(qty)
     # Update the supplied_qty in the Purchase Order Item Supplied table
     frappe.db.set_value("Purchase Order Item Supplied", po_detail, "supplied_qty", new_supplied_qty)
     frappe.db.commit()
@@ -554,6 +568,18 @@ def fetch_bathrobe_items(job_no, purchase_type, supplier):
 
 
 
+@frappe.whitelist()
+def update_direct_to_db(docname, auto_stock_check,stock_supplier, grn_item,po_type):
+    # Update the qty of a specific item in a submitted document
+    frappe.db.sql("""
+        UPDATE `tabPurchase Receipt`
+        SET auto_stock_transfer=%s,stock_supplier_ = %s, grn_item=%s, po_type=%s, modified = NOW()
+        WHERE name = %s 
+    """, (auto_stock_check,stock_supplier,grn_item,po_type,docname))
+
+    frappe.db.commit()
+
+    return {"message": "Record updated successfully"}
 
 
 

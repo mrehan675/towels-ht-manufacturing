@@ -287,8 +287,36 @@ frappe.ui.form.on("Purchase Receipt", {
         if (!frm.is_new()) {
         fetch_grn_items(frm);
         }
+        if (frm.doc.auto_stock_transfer && frm.doc.stock_supplier_ && frm.doc.grn_item && frm.doc.po_type != ""){
+           console.log("de");
+            frm.toggle_display('fetch_po_items', true); 
+            // frm.toggle_display('update_stock_fields', true); 
+
+        }
+        else{
+            console.log("false");
+            frm.toggle_display('fetch_po_items', false); 
+            // frm.toggle_display('update_stock_fields', false); 
+
+        }
     },
     //button
+    grn_item: function(frm){
+        if(frm.doc.grn_item){
+            frm.doc.items.forEach(function(row) {
+                if (row.item_code == frm.doc.grn_item){
+
+                    frm.set_value("stock_brand",row.brand);
+                    frm.set_value("stock_lbs",row.lbs);
+                    frm.set_value("stock_color",row.yarn_color);
+                    frm.set_value("stock_qty",row.qty);
+                   
+
+
+                }
+            });
+        }
+    },
     get_item_from_po: function(frm){
         
         if (frm.doc.receipt_type == 'Yarn Purchase Receipt'){
@@ -325,6 +353,31 @@ frappe.ui.form.on("Purchase Receipt", {
     fetch_po_items: function(frm){
         fetch_po_supplied_items(frm);
     },
+    update_stock_fields: function(frm){
+        console.log("enter in update");
+        // frappe.db.set_value("Purchase Receipt",frm.doc.name,stock_supplier_,frm.doc.stock_supplier_);
+
+        frappe.call({
+            method: "ht.utils.purchase_receipt.update_direct_to_db", // Change to your app path
+            args: {
+                docname: frm.doc.name,
+                auto_stock_check: frm.doc.auto_stock_transfer,
+                stock_supplier: frm.doc.stock_supplier_,
+                grn_item: frm.doc.grn_item,
+                po_type: frm.doc.po_type
+            },
+            callback: function(response) {
+                if (response.message) {
+                    frappe.msgprint(__('Stock Portion Updated successfully.'));
+                    frm.reload_doc();
+                    
+                }
+            }
+        });
+        
+        
+    },
+    
     supplier: function(frm) {
         if (frm.doc.supplier) {
             // Fetch the linked warehouse for the selected supplier
@@ -570,7 +623,9 @@ function fetch_grn_items(frm) {
                 let item_codes = response.message;
 
                 // Set the options of the grn_item select field
-                frm.set_df_property('grn_item', 'options', item_codes.join('\n'));
+                // frm.set_df_property('grn_item', 'options', item_codes.join('\n'));
+                frm.set_df_property('grn_item', 'options', [''].concat(item_codes).join('\n'));
+
                 
                 // Alternatively, you can loop and add each option (if needed)
                 /*
@@ -840,6 +895,18 @@ const fetch_po_supplied_items = (frm) => {
         
 
             fields: [
+
+                {
+                    fieldtype: 'Data',
+                    fieldname: 'job_no',
+                    read_only: 1,
+                    columns: 1,
+                    label: __('Job No'),
+                    default: frm.doc.job_number
+                },
+                {
+                    fieldtype: 'Column Break'  
+                },
                 {
                     fieldtype: 'Data',
                     fieldname: 'item_name',
@@ -849,17 +916,54 @@ const fetch_po_supplied_items = (frm) => {
                     default: frm.doc.grn_item
                 },
                 {
-                    fieldtype: 'Column Break'  // This adds the column break
+                    fieldtype: 'Column Break'  
                 },
                 {
                     fieldtype: 'Float',
                     fieldname: 'qty',
                     read_only: 1,
                     columns: 1,
-                    label: __('Qty')
+                    label: __('Qty'),
+                    default: frm.doc.stock_qty
                 },
                 {
-                    fieldtype: 'Section Break'  // This adds the column break
+                    fieldtype: 'Column Break'  
+                },
+                {
+                    fieldtype: 'Data',
+                    fieldname: 'brand',
+                    read_only: 1,
+                    columns: 1,
+                    label: __('Brand'),
+                    default: frm.doc.stock_brand
+                },
+                {
+                    fieldtype: 'Column Break'  
+                },
+                {
+                    fieldtype: 'Data',
+                    fieldname: 'color',
+                    read_only: 1,
+                    columns: 1,
+                    label: __('Color'),
+                    default: frm.doc.stock_color
+                },
+                {
+                    fieldtype: 'Column Break'  
+                },
+                {
+                    fieldtype: 'Data',
+                    fieldname: 'lbs',
+                    read_only: 1,
+                    columns: 1,
+                    label: __('LBS'),
+                    default: frm.doc.stock_lbs
+                },
+
+
+
+                {
+                    fieldtype: 'Section Break' 
                 },
                 {
                     fieldname: "items",
@@ -953,43 +1057,59 @@ const fetch_po_supplied_items = (frm) => {
             primary_action_label: 'Create Stock Entry',
             primary_action(values) {
                 if (values.items) {
-                    let po_check_itemslist = [];
+                    let selectedItems = [];
+                    let groupedItems = {}; 
+                
+                
                     for (let row of values.items) {
-                        if (row.check == 1) {
-                            let child = frm.add_child('items');
-                            let cdt = child.doctype;
-                            let cdn = child.name;
+                    if (row.check === 1) { 
+                        selectedItems.push({
+                            purchase_order: row.po_name,
+                            item_row_name: row.item_row_name,
+                            parent_item_code: row.parent_item_code,
+                            item_code: row.item_code,
+                            required_qty: row.required_qty,
+                            supplied_qty: row.supplied_qty,
+                            finish_weight_unit: row.finish_weight_unit,
+                            balance_qty: row.balance_qty
+                        });
+                    }
+                }
 
-                            // po_check_itemslist.push(row.dye_raw_mat_item_code);po_name
-                           
-                            frappe.model.set_value(cdt, cdn, 'purchase_order_item', row.item_row_name);
-                            frappe.model.set_value(cdt, cdn, 'purchase_order', row.po_name);
-                            frappe.model.set_value(cdt, cdn, 'item_code', row.item_code);
-                            frappe.model.set_value(cdt, cdn, 'item_name', row.item_name);
-                            frappe.model.set_value(cdt, cdn, 'description', row.description);
+                selectedItems.forEach(item => {
+                    if (!groupedItems[item.purchase_order]) {
+                        groupedItems[item.purchase_order] = [];
+                    }
+                    groupedItems[item.purchase_order].push(item);
+                });
+                console.log("Checking grouped",groupedItems);
+                for (let po in groupedItems) {
 
-
-                            frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
-                            frappe.model.set_value(cdt, cdn, 'qty', row.balance_qty);
-                            setTimeout(function() {
-                                frappe.model.set_value(cdt, cdn, 'rate', row.rate);
-                                frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
-                            }, 1500); // Delay of 1000 milliseconds
-                            
-
-                            frappe.model.set_value(cdt, cdn, 'greigh_weigh_unit', row.greigh_weigh_unit);
-                            frappe.model.set_value(cdt, cdn, 'finish_weight_unit', row.finish_weight_unit);
-
+                frappe.call({
+                    method: "ht.utils.purchase_receipt.make_rm_stock_entry",
+                    args: {
+                        purchase_order: po, // Pass the PO number
+                        items: groupedItems[po],
+                        purchase_receipt : cur_frm.doc.name
+                    },
+                    callback: function (response) {
+                        if (response.message) {
+                            frappe.msgprint(__('Stock Entry for PO ' + po + ' created successfully.'));
+                            cur_frm.refresh_field('items');
+                        } else {
+                            frappe.msgprint(__('Failed to create Stock Entry for PO ' + po + '.'));
                         }
                     }
+                });
 
 
-
-                    cur_frm.refresh_field('items');
+                    // cur_frm.refresh_field('items');
                     dialog.hide();
                 }
             }
+            }
         });
+
        
         
        
