@@ -149,9 +149,10 @@ def make_rm_stock_entry(purchase_order, items,purchase_receipt):
 								"description": item_wh.get(rm_item_code, {}).get("description", ""),
 								"qty": qty,
 								# "s_warehouse": rm_item_data["reserve_warehouse"],
-								"s_warehouse": "A & M Packages - HT_SB",
-
-								"t_warehouse": "GHafoor Bhai Weaving Service - HT_SB",
+								# "s_warehouse": "A & M Packages - HT_SB",
+								# "t_warehouse": "GHafoor Bhai Weaving Service - HT_SB",
+								"s_warehouse": purchase_receipt.supplier_warehouse,  # Dynamically set s_warehouse
+                                "t_warehouse": purchase_receipt.set_warehouse,  # Dynamically set t_warehouse
 								"stock_uom": rm_item_data["stock_uom"],
 								"subcontracted_item": rm_item_data["main_item_code"],
 								"allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
@@ -573,7 +574,7 @@ def update_direct_to_db(docname, auto_stock_check,stock_supplier, grn_item,po_ty
     # Update the qty of a specific item in a submitted document
     frappe.db.sql("""
         UPDATE `tabPurchase Receipt`
-        SET auto_stock_transfer=%s,stock_supplier_ = %s, grn_item=%s, po_type=%s, modified = NOW()
+        SET auto_stock_transfer=%s,stock_supplier_ = %s, grn_items=%s, po_types=%s, modified = NOW()
         WHERE name = %s 
     """, (auto_stock_check,stock_supplier,grn_item,po_type,docname))
 

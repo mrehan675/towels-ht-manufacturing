@@ -287,29 +287,30 @@ frappe.ui.form.on("Purchase Receipt", {
         if (!frm.is_new()) {
         fetch_grn_items(frm);
         }
-        if (frm.doc.auto_stock_transfer && frm.doc.stock_supplier_ && frm.doc.grn_item && frm.doc.po_type != ""){
+        console.log("refresh")
+        if (frm.doc.auto_stock_transfer && frm.doc.stock_supplier_ && frm.doc.grn_items && frm.doc.po_types!= ""){
            console.log("de");
-            frm.toggle_display('fetch_po_items', true); 
+            frm.toggle_display('fetchs_po_item_', true); 
             // frm.toggle_display('update_stock_fields', true); 
 
         }
         else{
             console.log("false");
-            frm.toggle_display('fetch_po_items', false); 
+            frm.toggle_display('fetchs_po_item_', false); 
             // frm.toggle_display('update_stock_fields', false); 
 
         }
     },
     //button
-    grn_item: function(frm){
-        if(frm.doc.grn_item){
+    grn_items: function(frm){
+        if(frm.doc.grn_items){
             frm.doc.items.forEach(function(row) {
-                if (row.item_code == frm.doc.grn_item){
+                if (row.item_code == frm.doc.grn_items){
 
-                    frm.set_value("stock_brand",row.brand);
-                    frm.set_value("stock_lbs",row.lbs);
-                    frm.set_value("stock_color",row.yarn_color);
-                    frm.set_value("stock_qty",row.qty);
+                    frm.set_value("stock_brand_",row.brand);
+                    frm.set_value("stock_lbs_",row.lbs);   
+                    frm.set_value("stock_color_",row.yarn_color);
+                    frm.set_value("stock_qty_",row.qty);
                    
 
 
@@ -350,7 +351,8 @@ frappe.ui.form.on("Purchase Receipt", {
        
     },
     //buttom
-    fetch_po_items: function(frm){
+    //fetch_po_items
+    fetchs_po_item_: function(frm){
         fetch_po_supplied_items(frm);
     },
     update_stock_fields: function(frm){
@@ -363,8 +365,8 @@ frappe.ui.form.on("Purchase Receipt", {
                 docname: frm.doc.name,
                 auto_stock_check: frm.doc.auto_stock_transfer,
                 stock_supplier: frm.doc.stock_supplier_,
-                grn_item: frm.doc.grn_item,
-                po_type: frm.doc.po_type
+                grn_item: frm.doc.grn_items,
+                po_type: frm.doc.po_types
             },
             callback: function(response) {
                 if (response.message) {
@@ -404,11 +406,11 @@ frappe.ui.form.on("Purchase Receipt", {
     },
     auto_stock_transfer:function(frm){
         console.log("enter in auto stock ");
-        if (frm.doc.auto_stock_transfer) {
-            console.log("enter pss iff");
-            // Clear the purchase_order field
-            frm.set_value('purchase_order', '');
-        }
+        // if (frm.doc.auto_stock_transfer) {
+        //     console.log("enter pss iff");
+        //     // Clear the purchase_order field
+        //     frm.set_value('purchase_order', '');
+        // }
     },
 
     onload:function(frm){
@@ -426,7 +428,7 @@ frappe.ui.form.on("Purchase Receipt", {
 			}
 		});
 
-        frm.set_query("po_type", function() {
+        frm.set_query("po_types", function() {
 			return {
 				filters: [
 					["Order Type","type", "in", ["Purchase Order"]]
@@ -441,30 +443,30 @@ frappe.ui.form.on("Purchase Receipt", {
         console.log("llllllll");
         console.log(frm.doc.purchase_order);
 
-        if (frm.doc.auto_stock_transfer) {
+    //     if (frm.doc.auto_stock_transfer) {
 
-        // Comment stock entry creation work due to Get PO dialogue work.
-        // _make_rm_stock_entry(frm);
-        function _make_rm_stock_entry(frm) {
-            console.log(frm.doc.purchase_order);
-            console.log(cur_frm.doc.purchase_order);
-            console.log('make stock entry');
+    //     // Comment stock entry creation work due to Get PO dialogue work.
+    //     // _make_rm_stock_entry(frm);
+    //     function _make_rm_stock_entry(frm) {
+    //         console.log(frm.doc.purchase_order);
+    //         console.log(cur_frm.doc.purchase_order);
+    //         console.log('make stock entry');
             
-            console.log("purchase_order");
-            frappe.call({
-                method:"ht.utils.purchase_receipt.make_rm_stock_entry",
-                args: {
-                    purchase_order: frm.doc.purchase_order,
-                    items: frm.doc.items
-                }
-                ,
-                callback: function(r) {
-                    var doclist = frappe.model.sync(r.message);
-                    //frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
-                }
-            });
-        }
-    }
+    //         console.log("purchase_order");
+    //         frappe.call({
+    //             method:"ht.utils.purchase_receipt.make_rm_stock_entry",
+    //             args: {
+    //                 purchase_order: frm.doc.purchase_order,
+    //                 items: frm.doc.items
+    //             }
+    //             ,
+    //             callback: function(r) {
+    //                 var doclist = frappe.model.sync(r.message);
+    //                 //frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+    //             }
+    //         });
+    //     }
+    // }
 
         if (frm.doc.receipt_type == 'Yarn Purchase Receipt'){
             yarn_receipt(frm);
@@ -624,7 +626,7 @@ function fetch_grn_items(frm) {
 
                 // Set the options of the grn_item select field
                 // frm.set_df_property('grn_item', 'options', item_codes.join('\n'));
-                frm.set_df_property('grn_item', 'options', [''].concat(item_codes).join('\n'));
+                frm.set_df_property('grn_items', 'options', [''].concat(item_codes).join('\n'));
 
                 
                 // Alternatively, you can loop and add each option (if needed)
@@ -633,7 +635,7 @@ function fetch_grn_items(frm) {
                     frm.add_custom_option('grn_item', item_code);
                 });
                 */
-                frm.refresh_field('grn_item'); // Refresh the field to apply the changes
+                frm.refresh_field('grn_items'); // Refresh the field to apply the changes
             }
         }
     });
@@ -887,7 +889,7 @@ function set_link_query(frm){
 ////////////////////////////////////////Auto Stock Entry Work//////////////////
    
 const fetch_po_supplied_items = (frm) => {
-    if (frm.doc.stock_supplier_ && frm.doc.po_type) {
+    if (frm.doc.stock_supplier_ && frm.doc.po_types) {
         
         frm.data = [];
         let dialog = new frappe.ui.Dialog({
@@ -913,7 +915,7 @@ const fetch_po_supplied_items = (frm) => {
                     read_only: 1,
                     columns: 1,
                     label: __('Item Name'),
-                    default: frm.doc.grn_item
+                    default: frm.doc.grn_items
                 },
                 {
                     fieldtype: 'Column Break'  
@@ -924,7 +926,7 @@ const fetch_po_supplied_items = (frm) => {
                     read_only: 1,
                     columns: 1,
                     label: __('Qty'),
-                    default: frm.doc.stock_qty
+                    default: frm.doc.stock_qty_
                 },
                 {
                     fieldtype: 'Column Break'  
@@ -935,7 +937,7 @@ const fetch_po_supplied_items = (frm) => {
                     read_only: 1,
                     columns: 1,
                     label: __('Brand'),
-                    default: frm.doc.stock_brand
+                    default: frm.doc.stock_brand_
                 },
                 {
                     fieldtype: 'Column Break'  
@@ -946,7 +948,7 @@ const fetch_po_supplied_items = (frm) => {
                     read_only: 1,
                     columns: 1,
                     label: __('Color'),
-                    default: frm.doc.stock_color
+                    default: frm.doc.stock_color_
                 },
                 {
                     fieldtype: 'Column Break'  
@@ -957,7 +959,7 @@ const fetch_po_supplied_items = (frm) => {
                     read_only: 1,
                     columns: 1,
                     label: __('LBS'),
-                    default: frm.doc.stock_lbs
+                    default: frm.doc.stock_lbs_
                 },
 
 
@@ -1118,7 +1120,7 @@ const fetch_po_supplied_items = (frm) => {
             method: "ht.utils.purchase_receipt.fetch_supplied_items",
             args: {
                 stock_supplier: cur_frm.doc.stock_supplier_,
-                po_type: cur_frm.doc.po_type
+                po_type: cur_frm.doc.po_types
                 
             },
             callback: function (r) {
