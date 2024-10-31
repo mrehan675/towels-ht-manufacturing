@@ -1042,7 +1042,8 @@ const fetch_sales_order=(frm)=>{
                                 frappe.model.set_value(cdt, cdn, 'item_code', row.item_code);
                                 frappe.model.set_value(cdt, cdn, 'item_name', row.item_name);
                                 frappe.model.set_value(cdt, cdn, 'description', row.description);
-                                frappe.model.set_value(cdt, cdn, 'uom', "lbs");
+                                frappe.model.set_value(cdt, cdn, 'uom', "lbs");                                
+                                frappe.model.set_value(cdt,cdn, 'qty',row.total_parent_qty_with_b_percent);
                                 frappe.model.set_value(cdt, cdn, 'parent_item', row.parent_item_name);
                                 frappe.model.set_value(cdt, cdn, 'finish_weight_unit', row.net_weight);
                                 frappe.model.set_value(cdt, cdn, 'finish_weight_uom', row.weight_measuring_unit);

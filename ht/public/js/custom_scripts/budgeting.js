@@ -149,6 +149,8 @@ frappe.ui.form.on('Budgeting', {
 
         // Calculation of Total in this function
         totals (frm,cdt,cdn);
+        cal_profit_loss_section(frm);
+        calculate_date_difference(frm);
         // frm.set_value("total_qty",exp_total_qty);
         // frm.set_value("total_amount",exp_total_amount);
         
@@ -694,3 +696,39 @@ frappe.ui.form.on('Budgeting Sales Review', {
         frappe.model.set_value(cdt, cdn, 'amount', desc.qty*desc.rate);
     }
 })
+
+
+
+function cal_profit_loss_section(frm){
+
+    frm.set_value('export_sales', frm.doc.total_amount_pkr);
+    frm.set_value('local_sale', frm.doc.local_sales);
+    frm.set_value('rebate_percent', frm.doc.rebate_value);
+    frm.set_value('total_amounts', frm.doc.total_amount);
+    frm.set_value('total_costs', frm.doc.total_cost_amount);
+    frm.set_value('profit_loss', frm.doc.total_amount - frm.doc.total_cost_amount);
+}
+
+function calculate_date_difference(frm) {
+    // Ensure both date fields are filled
+    if (frm.doc.order_receiving_date && frm.doc.budget_prepare_date) {
+        // Parse dates
+        const startDate = frappe.datetime.str_to_obj(frm.doc.order_receiving_date);
+        const endDate = frappe.datetime.str_to_obj(frm.doc.budget_prepare_date);
+
+        // Calculate difference in days
+        const differenceInDays = frappe.datetime.get_day_diff(endDate, startDate);
+
+        // Set the difference in the target field
+        frm.set_value('delay_days', differenceInDays);
+    } else {
+        frm.set_value('delay_days', 0); // Set to 0 if dates are missing
+    }
+}
+
+// Attach the function to the validate event
+// frappe.ui.form.on('Your Doctype Name', {
+//     validate: function(frm) {
+//         calculate_date_difference(frm);
+//     }
+// });
