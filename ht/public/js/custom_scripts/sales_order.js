@@ -1,4 +1,76 @@
 
+
+frappe.ui.form.on('Sales Order', {
+    refresh(frm) {
+        setTimeout(() => {
+            frm.remove_custom_button('Update Items');
+            
+        }, 10);
+    }
+});
+
+
+frappe.ui.form.on("Sales Order", {
+    refresh: function(frm) {
+        // Show the button only if the document is submitted
+        if (frm.doc.docstatus === 1) {
+            const button = frm.add_custom_button(__('Reopen'), function() {
+                // Confirmation dialog
+                frappe.confirm(
+                    __('Do you want to reopen this Sales Order?'),  // Dialog message
+                    function() { // On Confirm
+                        frappe.call({
+                            method: "ht.utils.sales_order.change_docstatus_to_draft",
+                            args: {
+                                docname: frm.doc.name,
+                                doctype: "Sales Order" 
+                            },
+                            callback: function(response) {
+                                if (!response.exc) {
+                                    console.log("dirty");
+                                    frm.reload_doc().then(() => {
+                                        // Mark the form as dirty
+                                        frm.dirty();
+                                        frm.save();
+                                        
+                                        // Show a success alert
+                                        frappe.show_alert({
+                                            message: response.message,
+                                            indicator: 'green'
+                                        });
+                                    });
+                                    
+                                }
+                            }
+                        });
+                    },
+                    function() { 
+                        // On Cancel, do nothing
+                    }
+                );
+            });
+
+            // Change button styles
+            $(button).css({
+                'background-color': '#f44336',  // Red background color
+                'color': 'white',                // Black text color
+                'padding': '5px 20px',          // Padding for a larger button
+                'border-radius': '5px',          // Rounded corners
+                'border': 'none',                // Remove border
+                'font-weight': 'bold',           // Bold text
+                'text-align': 'center',          // Center text
+                'display': 'inline-block',       // Allow padding
+                'text-decoration': 'none',        // No underline
+                'line-height': 'normal',         // Set normal line height
+                'height': 'auto',                // Allow height to adjust based on content
+                'vertical-align': 'middle'       // Vertically center the text within the button
+            });
+        }
+    }
+});
+
+
+
 // CREAte Custom button only in Sales ORder Form
 frappe.ui.form.on('Sales Order', {
     // refresh: function(frm) {
@@ -1025,8 +1097,11 @@ const fetch_sales_order=(frm)=>{
                     updateTotalQty(dialog);
                     console.log(values.items)
                     let totalQty = 0;
+                    let existingItems = frm.doc.items.map(item => item.item_code); // Get a list of existing item codes in the table
+
                     for (let row of values.items) {
-                        if(row.check ==1){
+                        if(row.check ==1&& !existingItems.includes(row.item_code))
+                            {
 
                             let child = frm.add_child('items', {qty: row.qty });
                             let cdt = child.doctype
@@ -1454,6 +1529,10 @@ frappe.ui.form.on('Sales Order Raw Material', {
 ///////On field Calculation for Sale Order Item Table/////////////////////
 
 frappe.ui.form.on('Sales Order',{
+
+    on_update_after_submit:function(frm, cdt,cdn){
+        console.log("On update");
+    },
     validate: function(frm, cdt, cdn) {
         
         //Setup item qty to total qty in pcs field

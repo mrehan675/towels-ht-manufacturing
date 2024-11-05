@@ -1,4 +1,72 @@
 
+frappe.ui.form.on('Purchase Order', {
+    refresh(frm) {
+        setTimeout(() => {
+            frm.remove_custom_button('Update Items');
+            
+        }, 10);
+    }
+});
+
+
+frappe.ui.form.on("Purchase Order", {
+    refresh: function(frm) {
+        // Show the button only if the document is submitted
+        if (frm.doc.docstatus === 1) {
+            const button = frm.add_custom_button(__('Reopen'), function() {
+                // Confirmation dialog
+                frappe.confirm(
+                    __('Do you want to reopen this Purchase Order?'),  // Dialog message
+                    function() { // On Confirm
+                        frappe.call({
+                            method: "ht.utils.sales_order.change_docstatus_to_draft",
+                            args: {
+                                docname: frm.doc.name,
+                                doctype: "Purchase Order"
+                            },
+                            callback: function(response) {
+                                if (!response.exc) {
+                                    console.log("dirty");
+                                    frm.reload_doc().then(() => {
+                                        // Mark the form as dirty
+                                        frm.dirty();
+                                        frm.save();
+                                        
+                                        // Show a success alert
+                                        frappe.show_alert({
+                                            message: response.message,
+                                            indicator: 'green'
+                                        });
+                                    });
+                                    
+                                }
+                            }
+                        });
+                    },
+                    function() { 
+                        // On Cancel, do nothing
+                    }
+                );
+            });
+
+            // Change button styles
+            $(button).css({
+                'background-color': '#f44336',  // Red background color
+                'color': 'white',                // Black text color
+                'padding': '5px 20px',          // Padding for a larger button
+                'border-radius': '5px',          // Rounded corners
+                'border': 'none',                // Remove border
+                'font-weight': 'bold',           // Bold text
+                'text-align': 'center',          // Center text
+                'display': 'inline-block',       // Allow padding
+                'text-decoration': 'none',        // No underline
+                'line-height': 'normal',         // Set normal line height
+                'height': 'auto',                // Allow height to adjust based on content
+                'vertical-align': 'middle'       // Vertically center the text within the button
+            });
+        }
+    }
+});
 
 function update_qty_label(frm) {
     // Check the value of purchase_type
@@ -1703,6 +1771,7 @@ const fetch_so_yarn_dyeing = (frm) => {
 
 
 
+// function set_color_values_in_all_po(frm,cdt,cdn){
 
-
-
+    
+// }
