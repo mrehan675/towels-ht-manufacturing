@@ -1,16 +1,224 @@
-
-
 frappe.ui.form.on('Sales Order', {
     refresh(frm) {
         setTimeout(() => {
             frm.remove_custom_button('Update Items');
             
         }, 10);
+    },
+});
+
+//Update work Sale Order
+function update_existing_values(frm) {
+    // Define variables to hold parent form values
+    let data = {
+        "variant_of": frm.doc.parent_item,
+        "net_weight": frm.doc.net_weight,
+        "greigh_weight": frm.doc.greigh_weight,
+        "weight_difference": frm.doc.weight_difference,
+        "weight_measuring_unit": frm.doc.weight_measuring_unit,
+        "total_secondary_qty_uom": frm.doc.total_seconday_qty_uom,
+        "total_parent_qty_uom": frm.doc.total_parent_qty_uom,
+        "b_percent": frm.doc.b_percent,
+        "loom_wastage": frm.doc.loom_wastage,
+        "greigh_kgs": frm.doc.greigh_kgs,
+        "greigh_lbs": frm.doc.greigh_lbs,
+        "final_lbs": frm.doc.final_lbs,
+        "total_secondary_qty": frm.doc.total_secondary_qty,
+        "total_secondary_qty_with_b_percent": frm.doc.total_secondary_qty_with_b_percent,
+        "total_parent_qty": frm.doc.total_parent_qty,
+        "total_parent_qty_with_b_percent": frm.doc.total_parent_qty_with_b_percent,
+        "secondary_to_standard_qty_ratio": frm.doc.total_secondary_qty / (frm.doc.total_parent_qty_with_b_percent || 1.0),
+        // Custom fields additions
+        "embroidery_rate": frm.doc.embroidery_rate,
+        "sh_rate": frm.doc.sh_rate,
+        "stitching_rate": frm.doc.stitching_rate,
+        "oh_rate": frm.doc.oh_rate,
+        "printing_rate": frm.doc.printing_rate,
+        "dye_rate": frm.doc.dye_rate,
+        "stitch_waste_qty": frm.doc.stitch_waste_qty,
+        "dye_waste_percentage": frm.doc.dye_waste_percentage,
+        "b_kgs_rate": frm.doc.b_kgs_rate,
+        "cut_length": frm.doc.cut_length,
+    };
+
+    // Log the collected data for debugging purposes
+    console.log("Parent Form Data:", data);
+
+    // Return or use the data object as needed
+    return data;
+}
+
+frappe.ui.form.on("Sales Order", {
+    update_values:function(frm){
+        console.log("Enter in update_values");
+        let parent_data = update_existing_values(frm);
+        // console.log("Update values",parent_data);
+        (frm.doc.items || []).forEach(row => {
+        if (row.variant_of === parent_data.variant_of) {
+            
+
+            let cdt = row.doctype
+            let cdn = row.name
+            
+            frappe.model.set_value(cdt,cdn, "net_weight", parent_data.net_weight);
+            frappe.model.set_value(cdt,cdn, "greigh_weight", parent_data.greigh_weight); 
+            frappe.model.set_value(cdt,cdn, "weight_difference", parent_data.weight_difference);
+            frappe.model.set_value(cdt,cdn, "weight_measuring_unit", parent_data.weight_measuring_unit);
+            frappe.model.set_value(cdt,cdn, "total_seconday_qty_uom", parent_data.total_secondary_qty_uom);
+            frappe.model.set_value(cdt,cdn, "total_parent_qty_uom", parent_data.total_parent_qty_uom);
+            frappe.model.set_value(cdt,cdn, "b_percent", parent_data.b_percent);
+            frappe.model.set_value(cdt,cdn, "loom_wastage", parent_data.loom_wastage);
+            frappe.model.set_value(cdt,cdn, "parent_greigh_kgs", parent_data.greigh_kgs);
+            frappe.model.set_value(cdt,cdn, "parent_greigh_lbs", parent_data.greigh_lbs);
+            frappe.model.set_value(cdt,cdn, "total_final_lbs", parent_data.final_lbs);
+            frappe.model.set_value(cdt,cdn, "total_parent_qty", parent_data.total_parent_qty);
+            frappe.model.set_value(cdt,cdn, "total_parent_qty_with_b_percent", parent_data.total_parent_qty_with_b_percent);
+            frappe.model.set_value(cdt,cdn, "total_secondary_qty", parent_data.total_secondary_qty);
+            frappe.model.set_value(cdt,cdn, "total_secondary_qty_with_b_percent", parent_data.total_secondary_qty_with_b_percent);
+            frappe.model.set_value(cdt, cdn, "secondary_to_standard_qty_ratio", parent_data.total_secondary_qty/(row.total_parent_qty_with_b_percent || 1.0))
+            
+            var secondaryQty = Math.round(parent_data.total_secondary_qty*row.qty/(parent_data.total_parent_qty || 1.0));
+            frappe.model.set_value(cdt, cdn, "secondary_qty", secondaryQty)    
+            frappe.model.set_value(cdt, cdn, "secondary_qty_with_b_percent", secondaryQty*parent_data.b_percent/100 + secondaryQty)
+            frappe.model.set_value(cdt, cdn, "b_percent_qty", row.qty*parent_data.b_percent/100)
+            frappe.model.set_value(cdt, cdn, "qty_with_b_percent", row.qty*parent_data.b_percent/100 + row.qty)
+            
+            var rowGreighKgs = Math.round(parent_data.greigh_kgs*row.qty/(parent_data.total_parent_qty || 1.0));
+            var rowGreighLBS = rowGreighKgs*2.2046
+            var rowFinalLBS = rowGreighLBS + (rowGreighLBS*parent_data.loom_wastage/100)
+            frappe.model.set_value(cdt, cdn, "greigh_kilograms", rowGreighKgs)
+            frappe.model.set_value(cdt, cdn, "lbs_greigh", rowGreighLBS)
+            frappe.model.set_value(cdt, cdn, "final_lbs_",  rowFinalLBS)
+            // totalQty += row.qty || 0;
+            
+            var rowFinalStichRate = parent_data.embroidery_rate + parent_data.stitching_rate + parent_data.printing_rate
+            frappe.model.set_value(cdt,cdn,"embroidery_rate", parent_data.embroidery_rate)
+            frappe.model.set_value(cdt,cdn,"stiching_rate",parent_data.stitching_rate)
+            frappe.model.set_value(cdt,cdn,"printing_rate",parent_data.printing_rate)
+            frappe.model.set_value(cdt,cdn, "final_stich_rate", rowFinalStichRate)
+            frappe.model.set_value(cdt,cdn, "stitch_waste_qty",parent_data.stitch_waste_qty)
+            var rowTotalQtyWaste = row.qty + parent_data.stitch_waste_qty
+            var rowTotalStitchingAmount = parent_data.stitching_rate * parent_data.total_parent_qty_with_b_percent
+            frappe.model.set_value(cdt,cdn,"total_qty_with_waste", rowTotalQtyWaste)
+            frappe.model.set_value(cdt,cdn,"total_stitching_amount", rowTotalStitchingAmount)
+            frappe.model.set_value(cdt,cdn,"dye_rate",parent_data.dye_rate)
+            frappe.model.set_value(cdt,cdn,"oh_rate",parent_data.oh_rate)
+            frappe.model.set_value(cdt,cdn,"sh_rate",parent_data.sh_rate)
+            frappe.model.set_value(cdt,cdn,"dye_waste_percentage",parent_data.dye_waste_percentage)
+            frappe.model.set_value(cdt,cdn,"b_kgs_rate",parent_data.b_kgs_rate)
+
+         
+            
+           
+            
+
+                                        
+            // Based ON Weight Measuring Unit Field Calc
+
+
+            //  GM/MTR 
+
+            if (parent_data.weight_measuring_unit== "GM/MTR"){
+                console.log("Enter in GM PER METER");
+                
+                // dye qlty value for calc
+                var rowDyeQlty = (parent_data.net_weight * parent_data.total_secondary_qty / parent_data.total_parent_qty) / 1000 
+                frappe.model.set_value(cdt,cdn,"dye_qlty", rowDyeQlty)
+               
+
+                //weave qlty formula (Dye QLTY *B%)+ Dye Qlty (this formula has been changed) Below are new formula
+                // if GM/MTR=> Greight Weight*(Tot Secondary Qty with b% / Total Parent qty with b%)/1000
+
+                var rowWeaveQlty =  (parent_data.greight_weight) * ((parent_data.total_secondary_qty_with_b_percent/parent_data.total_parent_qty_with_b_percent)/ 1000)
+                //frappe.model.set_value(cdt,cdn,"weave_qlty",rowWeaveQlty)
+                frappe.model.set_value(cdt,cdn,"weave_qlty",rowWeaveQlty)
+                console.log("WEAVE QLTY 9");
+                console.log(rowWeaveQlty);
+
+                                                
+               
+                
+                // Dye Lbs calc
+                var rowDyeLbs = (parent_data.total_parent_qty_with_b_percent) * (rowDyeQlty) * 2.2046
+                frappe.model.set_value(cdt,cdn,"dye_lbs",rowDyeLbs)
+                                                                            
+                // Weaving Lbs calc
+                var rowweaveLbs = (parent_data.total_parent_qty_with_b_percent) * (rowWeaveQlty) * 2.2046
+                frappe.model.set_value(cdt,cdn,"lbs",rowweaveLbs)
+
+
+                //Weaving Amount
+                var rowWeavingAmount = rowweaveLbs * (parent_data.oh_rate + parent_data.sh_rate)
+                frappe.model.set_value(cdt,cdn,"weaving_amount", rowWeavingAmount)
+
+                 // Total Dyeing Amount Calc
+                 var rowTotalDyeAmount = parent_data.dye_rate * rowDyeLbs
+                 frappe.model.set_value(cdt,cdn,"total_dyeing_amount", rowTotalDyeAmount)
+
+
+                //Calculating Net Lbs in Item vairant table over here
+                // //Net Lbs for gm/mtr= net weight*total secondary qty(parent item)/1000*2.2046
+                frappe.model.set_value(cdt, cdn, "net_lbs", (parent_data.net_weight) * (parent_data.total_secondary_qty/1000)* 2.2046);
+
+                //set cut length
+                frappe.model.set_value(cdt,cdn, "cut_length", parent_data.cut_length);
+
+
+         
+            }
+
+            // GM/PC
+            if (parent_data.weight_measuring_unit == "GM/PC"){
+
+                // Dye Qlty calculation 
+                var rowDyeQlty = parent_data.net_weight / 1000
+                frappe.model.set_value(cdt,cdn,"dye_qlty", rowDyeQlty)
+
+                //weave qlty formula Greigh Weight/1000
+                var rowWeaveQlty = parent_data.greight_weight / 1000
+                //  console.log("rowWeave");
+                //  console.log(rowWeaveQlty);
+                frappe.model.set_value(cdt,cdn,"weave_qlty",rowWeaveQlty)
+
+
+                
+                
+                 // Dye Lbs calc
+                var rowDyeLbs = (parent_data.total_parent_qty_with_b_percent) * (rowDyeQlty) * 2.2046
+                frappe.model.set_value(cdt,cdn,"dye_lbs",rowDyeLbs)
+                                              
+                 // Weaving Lbs calc
+                var rowweaveLbs = (parent_data.total_parent_qty_with_b_percent) * (rowWeaveQlty) * 2.2046
+                frappe.model.set_value(cdt,cdn,"lbs",rowweaveLbs)
+
+
+
+                //Weaving Amount
+                var rowWeavingAmount = rowweaveLbs * (parent_data.oh_rate + parent_data.sh_rate)
+                frappe.model.set_value(cdt,cdn,"weaving_amount", rowWeavingAmount)
+
+
+                 // Total Dyeing Amount Calc
+                 var rowTotalDyeAmount = parent_data.dye_rate * rowDyeLbs
+                 frappe.model.set_value(cdt,cdn,"total_dyeing_amount", rowTotalDyeAmount)
+
+
+
+                //Net lbs for gm/PC=(Net weight*total quantity (parent item)/1000)*2.2046
+                frappe.model.set_value(cdt, cdn, "net_lbs", (parent_data.net_weight) * (parent_data.total_parent_qty/1000)* 2.2046);
+           
+
+
+            }
+
+
+            
     }
+
 });
 
 
-frappe.ui.form.on("Sales Order", {
+    },
     refresh: function(frm) {
         // Show the button only if the document is submitted
         if (frm.doc.docstatus === 1) {
@@ -1182,7 +1390,7 @@ const fetch_sales_order=(frm)=>{
 
                                 var rowWeaveQlty =  (row.greight_weight) * ((row.total_secondary_qty_with_b_percent/row.total_parent_qty_with_b_percent)/ 1000)
                                 //frappe.model.set_value(cdt,cdn,"weave_qlty",rowWeaveQlty)
-                                 frappe.model.set_value(cdt,cdn,"weave_qlty",rowWeaveQlty)
+                                frappe.model.set_value(cdt,cdn,"weave_qlty",rowWeaveQlty)
                                 console.log("WEAVE QLTY 9");
                                 console.log(rowWeaveQlty);
 
@@ -3867,3 +4075,246 @@ function clear_parent_fields(frm){
 
 
 
+//My new update work
+//Update values button work
+
+// let net_weight = frm.doc.net_weight || 0;
+// let greigh_weight = frm.doc.greigh_weight || 0;
+
+// let total_parent_qty = frm.doc.total_parent_qty || 0;
+// let weight_measuring_unit = frm.doc.weight_measuring_unit;
+// let weight_difference = frm.doc.weight_difference || 0;
+// let b_percent = frm.doc.b_percent || 0;
+// let total_secondary_qty = frm.doc.total_secondary_qty || 0;
+// let total_parent_qty_with_b_percent = frm.doc.total_parent_qty_with_b_percent || 0;
+// let greigh_kgs = frm.doc.greigh_kgs || 0;
+// let greigh_lbs = frm.doc.greigh_lbs || 0;
+// let final_lbs = frm.doc.final_lbs || 0;
+// let loom_wastage = frm.doc.loom_wastage || 0;
+// let dye_rate = frm.doc.dye_rate;
+
+
+
+// if (net_weight > 0 && greigh_weight > 0) {
+//     weight_difference = Math.abs((net_weight * 100) / greigh_weight - 100);        
+//     frm.set_value('weight_difference', weight_difference);
+// } else {
+//     console.error("Net Weight or Greigh Weight is invalid or zero");
+//     frappe.msgprint(__('Net Weight and Greigh Weight must be present'));
+
+// }
+
+// //=(B10*B15/100)+B12
+// if (total_parent_qty > 0 &&weight_measuring_unit=="GM/PC" &&b_percent > 0 &&total_secondary_qty > 0 ){
+//     total_parent_qty_with_b_percent = Math.abs((total_parent_qty * b_percent) / 100 + total_secondary_qty );
+//     console.log("total_parent_qty_with_b_percent",total_parent_qty_with_b_percent);
+
+//     frm.set_value('total_parent_qty_with_b_percent', total_parent_qty_with_b_percent);
+//     frm.set_value('total_secondary_qty_with_b_percent',total_parent_qty_with_b_percent );
+// }
+// else{
+//     frappe.msgprint(__('Total Parent Qty,B Percent and Total Secondary Qty must be present'));
+// }
+
+// //=B16*B4/1000
+// if (total_parent_qty_with_b_percent > 0 && greigh_weight > 0 ){
+//     greigh_kgs = (total_parent_qty_with_b_percent * greigh_weight) / 1000;
+//     console.log("griegh kgs",greigh_kgs);
+
+//     frm.set_value('greigh_kgs', greigh_kgs);
+
+// }
+// else{
+//     frappe.msgprint(__('Total Parent Qty with B Percent and Greigh Weight must be present'));
+// }
+
+// //=B24*2.2046
+// if (greigh_kgs > 0){
+//     greigh_lbs = greigh_kgs * 2.2046;
+
+//     console.log("greigh_lbs",greigh_lbs);
+
+//     frm.set_value('greigh_lbs', greigh_lbs);
+
+
+// }
+// else{
+//     frappe.msgprint(__('Greigh Kgs must be present'));
+// }
+
+// //=B25*(1+B22/100)
+// if (greigh_lbs > 0 && loom_wastage){
+//     final_lbs =  greigh_lbs * (1 + loom_wastage / 100 );
+
+//     console.log("final_lbs",final_lbs);
+//     frm.set_value('final_lbs', final_lbs);
+// }
+// else{
+//     frappe.msgprint(__('Greigh LBS and Loom Wastage must be present'));
+
+// }
+
+
+// (frm.doc.items || []).forEach(row => {
+//     if (frm.doc.parent_item === row.variant_of) {
+//         console.log(`Updating row ${row.idx} (variant_of: ${row.variant_of})`);
+
+
+//         //child rows
+//         let row_qty = row.qty || 0;
+
+//         //Parent Item Net Weight Details 
+//         let row_net_weight = row.net_weight || 0;
+//         let row_greigh_weight = row.greigh_weight || 0;
+//         let row_weight_difference = row.weight_difference || 0;                
+//         let row_total_parent_qty = row.total_parent_qty || 0;
+//         let row_total_parent_qty_uom = row.total_parent_qty_uom;
+
+//         let row_weight_measuring_unit = row.weight_measuring_unit  ;
+//         let row_total_secondary_qty = row.total_secondary_qty || 0;
+
+//         let row_total_seconday_qty_uom = row.total_seconday_qty_uom ;
+
+//         let row_b_percent = row.b_percent || 0;
+
+//         let row_total_secondary_qty_with_b_percent = row.total_secondary_qty_with_b_percent || 0 ;
+
+//         let row_total_parent_qty_with_b_percent = row.total_parent_qty_with_b_percent || 0;
+
+//         let row_net_lbs = row.net_lbs || 0;
+
+//         let row_loom_wastage = row.loom_wastage || 0 ;
+//         let row_parent_greigh_kgs = row.parent_greigh_kgs || 0 ;
+//         let row_parent_greigh_lbs = row.parent_greigh_lbs || 0 ;
+//         let row_b_kgs = row.b_kgs || 0;
+//         let row_b_kgs_rate = row.b_kgs_rate || 0;
+//         let row_b_kgs_value = row.b_kgs_value || 0 ;
+//         let row_b_value = row.b_value || 0;
+//         let row_weave_waste_lbs = row.weave_waste_lbs || 0 ;
+//         let row_total_final_lbs = row.total_final_lbs || 0;
+//         let row_total_weaving_amount = row.total_weaving_amount || 0;
+//         let row_total_yarn_required = row.total_yarn_required || 0;
+//         let row_total_yarn_amount = row.total_yarn_amount || 0;
+//         let row_dye_waste_lbs = row.dye_waste_lbs || 0;
+
+//         //Set Values Only
+
+//         //Net Weight
+//         if (net_weight > 0 && net_weight != row.net_weight) {
+//             console.log("net");
+
+//             frappe.model.set_value(row.doctype, row.name, 'net_weight', net_weight);
+//         }
+
+//         //Greigh Weight
+//         if (greigh_weight > 0 && greigh_weight != row.greigh_weight) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'greigh_weight', greigh_weight);
+//         }
+
+//         //Weight Difference
+//         if (frm.doc.weight_difference > 0 && frm.doc.weight_difference != row.weight_difference) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'weight_difference', frm.doc.weight_difference);
+//         }
+
+//         //Total Parent Qty
+//         if (frm.doc.total_parent_qty > 0 && frm.doc.total_parent_qty != row.total_parent_qty) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'total_parent_qty', frm.doc.total_parent_qty);
+//         }
+
+
+//         //Total Parent Qty UOM
+//         if (frm.doc.total_parent_qty_uom && frm.doc.total_parent_qty_uom != row.total_parent_qty_uom) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'total_parent_qty', frm.doc.total_parent_qty_uom);
+//         }
+
+
+//         //Weight Measuring Unit
+//         if (frm.doc.weight_measuring_unit && frm.doc.weight_measuring_unit != row.weight_measuring_unit) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'weight_measuring_unit', frm.doc.weight_measuring_unit);
+//         }
+
+//         //Total Secondary Qty
+//         if (frm.doc.total_secondary_qty > 0 && frm.doc.total_secondary_qty != row.total_secondary_qty) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'total_secondary_qty', frm.doc.total_secondary_qty);
+//         }
+
+//         //Total Seconday Qty UOM
+//         if (frm.doc.total_seconday_qty_uom && frm.doc.total_seconday_qty_uom != row.total_seconday_qty_uom) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'total_seconday_qty_uom', frm.doc.total_seconday_qty_uom);
+//         }
+
+
+//         //B Percent
+//         if (frm.doc.b_percent > 0 && frm.doc.b_percent != row.b_percent) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'b_percent', frm.doc.b_percent);
+//         }
+
+//         //Total Secondary Qty with B Percent
+//         if (frm.doc.total_secondary_qty_with_b_percent > 0 && frm.doc.total_secondary_qty_with_b_percent != row.total_secondary_qty_with_b_percent) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'total_secondary_qty_with_b_percent', frm.doc.total_secondary_qty_with_b_percent);
+//         }
+
+
+//         //Total Parent Qty with B Percent
+//         if (frm.doc.total_parent_qty_with_b_percent > 0 && frm.doc.total_parent_qty_with_b_percent != row.total_parent_qty_with_b_percent) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'total_parent_qty_with_b_percent', frm.doc.total_parent_qty_with_b_percent);
+//         }
+        
+
+//         //Net Lbs
+//         if (frm.doc.net_lbs > 0 && frm.doc.net_lbs != row.net_lbs) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'net_lbs', frm.doc.net_lbs);
+//         }
+
+//         //Loom Wastage
+//         if (frm.doc.loom_wastage > 0 && frm.doc.loom_wastage != row.loom_wastage) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'loom_wastage', frm.doc.loom_wastage);
+//         }
+
+//         //Parent Greigh Kgs
+//         if (frm.doc.loom_wastage > 0 && frm.doc.loom_wastage != row.loom_wastage) {
+//             console.log("gr");
+//             frappe.model.set_value(row.doctype, row.name, 'loom_wastage', frm.doc.loom_wastage);
+//         }
+
+
+
+
+//         //Dye Rate
+//         if (dye_rate > 0 && dye_rate != row.dye_rate) {
+//             console.log("dye");
+
+//             frappe.model.set_value(row.doctype, row.name, 'dye_rate', net_weight);
+//         }
+
+//         //=D29*$D$35/100+D29
+//         if(row_qty > 0 && row_b_percent > 0){
+//             let row_total_parent_qty_with_b_percent = (row_qty * row_b_percent /100  + row_qty) ;
+//             console.log("qty_with_b_percent",row_total_parent_qty_with_b_percent);
+
+//             frappe.model.set_value(row.doctype, row.name, 'qty_with_b_percent', row_total_parent_qty_with_b_percent);
+
+
+
+//         }
+
+//         //=(F29*H29/1000)*2.2046
+//         // if(){
+
+//         // }
+
+        
+//     }
+// });

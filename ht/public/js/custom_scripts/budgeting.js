@@ -38,9 +38,68 @@ frappe.ui.form.on('Budgeting', {
     }
 });
 
+function set_so_values_to_budgeting(frm){
+    frappe.prompt(
+        {
+            label: 'Sales Order',
+            fieldname: 'sales_order',
+            fieldtype: 'Data',
+            default: frm.doc.sales_order, 
+            reqd: 1,
+            read_only:1
+        },
+        function(data) {
+            frappe.call({
+                method: 'ht.utils.budgeting.create_budgeting_entry',
+                args: { sales_order_name: data.sales_order },
+                callback: function(response) {
+                    if (response.message) {
+                        // Update the form with the returned data
+                        const data = response.message;
+
+                        console.log("DATA",data);
+
+                        // Set main fields
+                        frm.set_value('customer', data.customer);
+                        frm.set_value('sales_order', data.sales_order);
+                        frm.set_value('shipment_date', data.shipment_date);
+                        frm.set_value('currency', data.currency);
+                        frm.set_value('order_receiving_date', data.order_receiving_date);
+                        frm.set_value('us_dollar', data.us_dollar);
+                        frm.set_value('exchange_rate', data.exchange_rate);
+                        frm.set_value('total_amount_pkr', data.total_amount_pkr);
+                        frm.set_value('loom_type', data.loom_type);
+                        frm.set_value('merchandiser_', data.merchandiser_);
+                        frm.set_value('work_order', data.work_order);
+
+                        // Clear and set child tables
+                        frm.clear_table('budgeting_item');
+                        frm.clear_table('rawmaterial_yarn_items');
+                        frm.clear_table('parent_items_table');
+
+                        data.budgeting_item.forEach(item => frm.add_child('budgeting_item', item));
+                        data.rawmaterial_yarn_items.forEach(item => frm.add_child('rawmaterial_yarn_items', item));
+                        data.parent_item_tab.forEach(item => frm.add_child('parent_items_table', item));
+
+                        frm.refresh();
+                    }
+                }
+            });
+        },
+        __('Select Sales Order'),
+        __('Fetch')
+    );
+
+}
+
 var itemQtyMap = {};  // Declare itemQtyMap in a global scope
 
 frappe.ui.form.on('Budgeting', {
+    get_from_sales_order:function(frm){
+        console.log("salessssssss");
+        set_so_values_to_budgeting(frm);
+        
+    },
     validate: function(frm, cdt, cdn) {
          let totalQty = 0;
          let totalAmount = 0;
