@@ -129,7 +129,7 @@ frappe.ui.form.on("Sales Order", {
                 //weave qlty formula (Dye QLTY *B%)+ Dye Qlty (this formula has been changed) Below are new formula
                 // if GM/MTR=> Greight Weight*(Tot Secondary Qty with b% / Total Parent qty with b%)/1000
 
-                var rowWeaveQlty =  (parent_data.greight_weight) * ((parent_data.total_secondary_qty_with_b_percent/parent_data.total_parent_qty_with_b_percent)/ 1000)
+                var rowWeaveQlty =  (parent_data.greigh_weight) * ((parent_data.total_secondary_qty_with_b_percent/parent_data.total_parent_qty_with_b_percent)/ 1000)
                 //frappe.model.set_value(cdt,cdn,"weave_qlty",rowWeaveQlty)
                 frappe.model.set_value(cdt,cdn,"weave_qlty",rowWeaveQlty)
                 console.log("WEAVE QLTY 9");
@@ -173,11 +173,12 @@ frappe.ui.form.on("Sales Order", {
                 // Dye Qlty calculation 
                 var rowDyeQlty = parent_data.net_weight / 1000
                 frappe.model.set_value(cdt,cdn,"dye_qlty", rowDyeQlty)
+                console.log("rowDyeQlty",rowDyeQlty);
 
                 //weave qlty formula Greigh Weight/1000
-                var rowWeaveQlty = parent_data.greight_weight / 1000
-                //  console.log("rowWeave");
-                //  console.log(rowWeaveQlty);
+                var rowWeaveQlty = parent_data.greigh_weight / 1000 ;
+                // console.log("parent_data.greigh_weight",parent_data.greigh_weight);
+                // console.log("rowWeaveQlty",rowWeaveQlty);
                 frappe.model.set_value(cdt,cdn,"weave_qlty",rowWeaveQlty)
 
 
@@ -1315,7 +1316,6 @@ const fetch_sales_order=(frm)=>{
                             let cdt = child.doctype
                             let cdn = child.name
                             frappe.model.set_value(cdt,cdn,'item_code', row.item_code);
-                            // set parent item in variant of by Qadeer Rizvi
                             frappe.model.set_value(cdt, cdn, 'variant_of', frm.doc.parent_item)
                             frappe.model.set_value(cdt,cdn,'qty', row.qty);
                             frappe.model.set_value(cdt,cdn,'delivery_date', row.delivery_date);
@@ -1411,8 +1411,8 @@ const fetch_sales_order=(frm)=>{
                                 frappe.model.set_value(cdt,cdn,"weaving_amount", rowWeavingAmount)
 
                                  // Total Dyeing Amount Calc
-                                 var rowTotalDyeAmount = row.dye_rate * rowDyeLbs
-                                 frappe.model.set_value(cdt,cdn,"total_dyeing_amount", rowTotalDyeAmount)
+                                var rowTotalDyeAmount = row.dye_rate * rowDyeLbs
+                                frappe.model.set_value(cdt,cdn,"total_dyeing_amount", rowTotalDyeAmount)
 
 
                                 //Calculating Net Lbs in Item vairant table over here

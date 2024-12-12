@@ -125,17 +125,84 @@ def setting_items(sales_order_no,purchase_type):
         if purchase_type == "Weaving Service":
             variant = row.get("variant_of")
             item = frappe.db.sql(""" Select * from `tabItem` where variant_of=%s and item_group='Semi Finished Goods' """,(variant,),as_dict=1)
+            
+            
             if item:
               
                 row["item_code"] = item[0]["item_code"]
-                row["item_name"] = item[0]["item_name"]           
+                row["item_name"] = item[0]["item_name"]
+                
+                #Working for Order placed Qty
+                query = """
+                SELECT 
+                    poi.item_code,
+                    SUM(poi.qty) AS order_placed_total_qty
+                FROM 
+                    `tabPurchase Order Item` AS poi
+                JOIN 
+                    `tabPurchase Order` AS po
+                ON 
+                    poi.parent = po.name
+                WHERE 
+                    po.purchase_type = %(purchase_type)s
+                    AND po.sales_order = %(sales_order)s
+                    AND po.docstatus = 1
+                    AND poi.item_code = item_code
+                    
+                GROUP BY 
+                    poi.item_code;
+                """
+               
+                result = frappe.db.sql(query, {"purchase_type": purchase_type, "sales_order": sales_order_no,"item_code":item[0]["item_code"]}, as_dict=True)
+
+                if result and result[0].get("item_code") == item[0]["item_code"]:
+                   
+                    row["order_placed_qty"] = result[0]["order_placed_total_qty"]
+                else:
+                        row["order_placed_qty"] = 0
                 
                 data.append(row)
                 
         
-        if purchase_type == "Dying Service":
+        if purchase_type == "Dying Service" :
             console("back for dyig service").log()
             # console("row",row).log()
+            item_code = row.get("item_code")
+            paren_item = row.get("variant_of")
+            # console("item",item_code).log()
+
+            #Working for Order placed Qty
+            query = """
+            SELECT 
+                poi.item_code,
+                SUM(poi.qty) AS order_placed_total_qty
+            FROM 
+                `tabPurchase Order Item` AS poi
+            JOIN 
+                `tabPurchase Order` AS po
+            ON 
+                poi.parent = po.name
+            WHERE 
+                po.purchase_type = %(purchase_type)s
+                AND po.sales_order = %(sales_order)s
+                AND po.docstatus = 1
+                AND poi.item_code = item_code
+                AND poi.parent_item = parent_item
+                
+            GROUP BY 
+                poi.item_code;
+            """
+            
+            result = frappe.db.sql(query, {"purchase_type": purchase_type, "sales_order": sales_order_no,"item_code":item_code,"parent_item":paren_item}, as_dict=True)
+            console("REsult",result).log()
+
+            if result and result[0].get("item_code") == row.get("item_code"):
+                
+                row["order_placed_qty"] = result[0]["order_placed_total_qty"]
+            
+            else:
+                        row["order_placed_qty"] = 0
+
                
             
             data.append(row)
@@ -160,6 +227,39 @@ def setting_items(sales_order_no,purchase_type):
                     row["item_name"] = variant_item
                     console("rpow").log()
                     console(row).log()
+                    console("variant_item",variant_item).log()
+                    
+                    #Working for Order placed Qty
+                    query = """
+                    SELECT 
+                        poi.item_code,
+                        SUM(poi.qty) AS order_placed_total_qty
+                    FROM 
+                        `tabPurchase Order Item` AS poi
+                    JOIN 
+                        `tabPurchase Order` AS po
+                    ON 
+                        poi.parent = po.name
+                    WHERE 
+                        po.purchase_type = %(purchase_type)s
+                        AND po.sales_order = %(sales_order)s
+                        AND po.docstatus = 1
+                        AND poi.item_code = item_code
+                       
+                    GROUP BY 
+                        poi.item_code;
+                    """
+                    
+                    result = frappe.db.sql(query, {"purchase_type": purchase_type, "sales_order": sales_order_no,"item_code":variant_item}, as_dict=True)
+                    console("REsult",result).log()
+
+                    if result and result[0].get("item_code") == variant_item:
+                        
+                        row["order_placed_qty"] = result[0]["order_placed_total_qty"]
+                    else:
+                        row["order_placed_qty"] = 0
+
+                    
                     data.append(row)
         
 
@@ -218,6 +318,7 @@ def fetch_parent_items_of_so(sales_order_no,purchase_type):
 #Sales Order (Raw Material Table)
 @frappe.whitelist()
 def fetch_raw_material_items(sales_order_no,purchase_type):
+    console("sss").log()
     raw = []
     raw_list = []
     
@@ -245,7 +346,8 @@ def fetch_raw_material_items(sales_order_no,purchase_type):
                 
    
         """,(sales_order_no,),as_dict=1)
-
+      
+    
     for row in raw_list:
 
         #weaving po raw material work
@@ -264,8 +366,43 @@ def fetch_raw_material_items(sales_order_no,purchase_type):
         # Dye Yarn Po work 
         if purchase_type == "Yarn Dying":
                 console("yarn",row).log()
+                
+                variant = row.get("parent_item")
+                item_code = row.get("raw_mat_item")
+                
+                #Working for Order placed Qty
+                query = """
+                SELECT 
+                    poi.item_code,
+                    SUM(poi.qty) AS order_placed_total_qty
+                FROM 
+                    `tabPurchase Order Item` AS poi
+                JOIN 
+                    `tabPurchase Order` AS po
+                ON 
+                    poi.parent = po.name
+                WHERE 
+                    po.purchase_type = %(purchase_type)s
+                    AND po.sales_order = %(sales_order)s
+                    AND po.docstatus = 1
+                    AND poi.item_code = item_code
+                    And poi.parent_item = parent_item
+                    
+                GROUP BY 
+                    poi.item_code;
+                """
+               
+                result = frappe.db.sql(query, {"purchase_type": purchase_type, "sales_order": sales_order_no,"item_code":item_code,"parent_item" : variant}, as_dict=True)
+
+                if result and result[0].get("item_code") == item_code:
+                   
+                    row["order_placed_qty"] = result[0]["order_placed_total_qty"]
+                
+                else:
+                        row["order_placed_qty"] = 0
+                
                 raw.append(row)
-            #end of weaving po work           
+                      
 
     return raw
 
@@ -345,7 +482,6 @@ def fetch_pr_yarn_field(purchase_receipt_no):
         
         
    
-        
         
         
         

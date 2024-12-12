@@ -6,6 +6,7 @@ from frappe.utils import flt
 
 
 
+
 @frappe.whitelist()
 def set_child_itemlist(pr_name):
     print("pr_name", pr_name)
@@ -52,157 +53,347 @@ def set_subcontracted_items(doc, method):
 # Hook this method in your Purchase Receipt DocType's `before_save` event
 
 
-@frappe.whitelist()
-def make_rm_stock_entry(purchase_order, items,purchase_receipt):
-	console("hdddddddddddd").log()
-	console("purchase_order",purchase_order).log()
-	console("items",items).log()
+# @frappe.whitelist()
+# def make_rm_stock_entry(purchase_order, items,purchase_receipt):
+# 	console("hdddddddddddd").log()
+# 	console("purchase_order",purchase_order).log()
+# 	console("items",items).log()
 
 
-	rm_items = get_supplied_items(purchase_order)
+# 	rm_items = get_supplied_items(purchase_order)
 	
-	rm_items_list = rm_items
+# 	rm_items_list = rm_items
 
-	# rm_items_list = rm_items
+# 	# rm_items_list = rm_items
 
-	# if isinstance(rm_items, str):
-	# 	rm_items_list = json.loads(rm_items)
-	# elif not rm_items:
-	# 	frappe.throw(_("No Items available for transfer"))
+# 	# if isinstance(rm_items, str):
+# 	# 	rm_items_list = json.loads(rm_items)
+# 	# elif not rm_items:
+# 	# 	frappe.throw(_("No Items available for transfer"))
 
-	if isinstance(items, str):
-		grn_items_list = json.loads(items)
+# 	if isinstance(items, str):
+# 		grn_items_list = json.loads(items)
 		
-	elif not grn_items_list:
-		frappe.throw(_("No Items available for transfer"))
+# 	elif not grn_items_list:
+# 		frappe.throw(_("No Items available for transfer"))
 
-	if grn_items_list:
-		# fg_items = list(set(d["rm_item_code"] for d in grn_items_list))
-		fg_items = list(set(d["item_code"] for d in grn_items_list))
+# 	if grn_items_list:
+# 		# fg_items = list(set(d["rm_item_code"] for d in grn_items_list))
+# 		fg_items = list(set(d["item_code"] for d in grn_items_list))
 
-	else:
-		frappe.throw(_("No Items selected for transfer"))
+# 	else:
+# 		frappe.throw(_("No Items selected for transfer"))
 
-	if purchase_order:
-		purchase_order = frappe.get_doc("Purchase Order", purchase_order)
-	if purchase_receipt:
-		purchase_receipt = frappe.get_doc("Purchase Receipt", purchase_receipt)		
+# 	if purchase_order:
+# 		purchase_order = frappe.get_doc("Purchase Order", purchase_order)
+  
+# 	if purchase_receipt:
+# 		purchase_receipt = frappe.get_doc("Purchase Receipt", purchase_receipt)		
     
-	if fg_items:
-		items = tuple(set(d["item_code"] for d in grn_items_list))
-		item_wh = get_item_details(items)
+# 	if fg_items:
+# 		items = tuple(set(d["item_code"] for d in grn_items_list))
+# 		item_wh = get_item_details(items)
 		
 
-		stock_entry = frappe.new_doc("Stock Entry")
-		stock_entry.purpose = "Send to Subcontractor"
-		stock_entry.stock_entry_type = "Send to Subcontractor"
-		stock_entry.purchase_order = purchase_order.name
-		stock_entry.supplier = purchase_receipt.stock_supplier_  
-		stock_entry.supplier_name = purchase_receipt.stock_supplier_ 
-		# stock_entry.supplier_address = purchase_order.supplier_address
-		# stock_entry.address_display = purchase_order.address_display
-		stock_entry.company = purchase_order.company
-		stock_entry.from_warehouse = purchase_receipt.supplier_warehouse
-		stock_entry.to_warehouse = purchase_receipt.set_warehouse
-		stock_entry.dn_type = "Stock Yarn Dying"
-		stock_entry.set_stock_entry_type()
+# 		stock_entry = frappe.new_doc("Stock Entry")
+# 		stock_entry.purpose = "Send to Subcontractor"
+# 		stock_entry.stock_entry_type = "Send to Subcontractor"
+# 		# stock_entry.purchase_order = purchase_order.name
+# 		stock_entry.supplier = purchase_receipt.stock_supplier_  
+# 		stock_entry.supplier_name = purchase_receipt.stock_supplier_ 
+# 		# stock_entry.supplier_address = purchase_order.supplier_address
+# 		# stock_entry.address_display = purchase_order.address_display
+# 		stock_entry.company = purchase_order.company
+# 		stock_entry.from_warehouse = purchase_receipt.supplier_warehouse
+# 		stock_entry.to_warehouse = purchase_receipt.set_warehouse
+# 		stock_entry.dn_type = "Stock Yarn Dying"
+# 		stock_entry.set_stock_entry_type()
 
-		for item_code in fg_items:
-			for rm_item_data in rm_items_list:
-				if rm_item_data["rm_item_code"] == item_code:
-					console("enter in if item code",).log()
-					rm_item_code = rm_item_data["rm_item_code"]
-					rm_item_row_name = rm_item_data["name"]
+# 		for item_code in fg_items:
+# 			for rm_item_data in rm_items_list:
+# 				if rm_item_data["rm_item_code"] == item_code:
+# 					console("enter in if item code",).log()
+# 					rm_item_code = rm_item_data["rm_item_code"]
+# 					rm_item_row_name = rm_item_data["name"]
 					
 					
-					matching_item = next((item for item in grn_items_list if item["item_code"] == rm_item_code and item["item_row_name"] == rm_item_row_name ), None)
-					qty = 0
-					console("matching_item",matching_item).log()
-					# if matching_item:
-					# 	console("if pass matching-item").log()
-					# 	qty = matching_item.get("qty", 0)
-					# 	console("qty",qty).log()
-					# 	items_dict = {
-                    #     "item_code": rm_item_code,
-                    #     "po_detail": rm_item_data.get("name"),
-                    #     "item_name": item_wh.get(rm_item_code, {}).get("item_name", ""),
-                    #     "description": item_wh.get(rm_item_code, {}).get("description", ""),
-                    #     "qty": qty,
-                    #     "s_warehouse": rm_item_data["reserve_warehouse"],
-					# 	"t_warehouse": "GHafoor Bhai Weaving Service - HT_SB",
-                    #     "stock_uom": rm_item_data["stock_uom"],
-                    #     "subcontracted_item": rm_item_data["main_item_code"],
-                    #     "allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
-                    # }
-					# stock_entry.append("items", items_dict)
+# 					matching_item = next((item for item in grn_items_list if item["item_code"] == rm_item_code and item["item_row_name"] == rm_item_row_name ), None)
+# 					qty = 0
+# 					console("matching_item",matching_item).log()
+# 					# if matching_item:
+# 					# 	console("if pass matching-item").log()
+# 					# 	qty = matching_item.get("qty", 0)
+# 					# 	console("qty",qty).log()
+# 					# 	items_dict = {
+#                     #     "item_code": rm_item_code,
+#                     #     "po_detail": rm_item_data.get("name"),
+#                     #     "item_name": item_wh.get(rm_item_code, {}).get("item_name", ""),
+#                     #     "description": item_wh.get(rm_item_code, {}).get("description", ""),
+#                     #     "qty": qty,
+#                     #     "s_warehouse": rm_item_data["reserve_warehouse"],
+# 					# 	"t_warehouse": "GHafoor Bhai Weaving Service - HT_SB",
+#                     #     "stock_uom": rm_item_data["stock_uom"],
+#                     #     "subcontracted_item": rm_item_data["main_item_code"],
+#                     #     "allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
+#                     # }
+# 					# stock_entry.append("items", items_dict)
 
-					if matching_item:
-						console("Matching item found", matching_item).log()
-						qty = matching_item.get("supplied_qty", 0)
+# 					if matching_item:
+# 						console("Matching item found", matching_item).log()
+# 						qty = matching_item.get("supplied_qty", 0)
 						
 
-						if qty :
-							items_dict = {
-								"item_code": rm_item_code,
-								"po_detail": rm_item_data.get("name"),
-								"item_name": item_wh.get(rm_item_code, {}).get("item_name", ""),
-								"description": item_wh.get(rm_item_code, {}).get("description", ""),
-								"qty": qty,
-								# "s_warehouse": rm_item_data["reserve_warehouse"],
-								# "s_warehouse": "A & M Packages - HT_SB",
-								# "t_warehouse": "GHafoor Bhai Weaving Service - HT_SB",
-								"s_warehouse": purchase_receipt.supplier_warehouse,  # Dynamically set s_warehouse
-                                "t_warehouse": purchase_receipt.set_warehouse,  # Dynamically set t_warehouse
-								"stock_uom": rm_item_data["stock_uom"],
-								"subcontracted_item": rm_item_data["main_item_code"],
-								"allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
-							}
-							console("Required Items",items_dict).log()
-							stock_entry.append("items", items_dict)
-							update_supplied_qty(rm_item_data["name"], qty)
-					else:
-						# frappe.throw(_("No matching item found for item_code {} in Purchase Order").format(rm_item_code))
-						console("No matching item found for item_code", rm_item_code).log()
-						continue
-					# else:
-					# 	qty = 0
-					# items_dict = {
-					# 	rm_item_code: {
-					# 		"po_detail": rm_item_data.get("name"),
-					# 		"item_name": rm_item_data["item_name"],
-					# 		"description": item_wh.get(rm_item_code, {}).get("description", ""),
-					# 		"qty": rm_item_data["qty"],
-					# 		"from_warehouse": rm_item_data["warehouse"],
-					# 		"stock_uom": rm_item_data["stock_uom"],
-					# 		"serial_no": rm_item_data.get("serial_no"),
-					# 		"batch_no": rm_item_data.get("batch_no"),
-					# 		"main_item_code": rm_item_data["item_code"],
-					# 		"allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
-					# 	}
-					# }
-					# items_dict = {
-                    #     "item_code": rm_item_code,
-                    #     "po_detail": rm_item_data.get("name"),
-                    #     "item_name": item_wh.get(rm_item_code, {}).get("item_name", ""),
-                    #     "description": item_wh.get(rm_item_code, {}).get("description", ""),
-                    #     "qty": qty,
-                    #     "s_warehouse": rm_item_data["reserve_warehouse"],
-					# 	"t_warehouse": "GHafoor Bhai Weaving Service - HT_SB",
-                    #     "stock_uom": rm_item_data["stock_uom"],
-                    #     "subcontracted_item": rm_item_data["main_item_code"],
-                    #     "allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
-                    # }
-					# stock_entry.append("items", items_dict)
+# 						if qty :
+# 							items_dict = {
+# 								"item_code": rm_item_code,
+# 								"po_detail": rm_item_data.get("name"),
+# 								"item_name": item_wh.get(rm_item_code, {}).get("item_name", ""),
+# 								"description": item_wh.get(rm_item_code, {}).get("description", ""),
+# 								"qty": qty,
+# 								# "s_warehouse": rm_item_data["reserve_warehouse"],
+# 								# "s_warehouse": "A & M Packages - HT_SB",
+# 								# "t_warehouse": "GHafoor Bhai Weaving Service - HT_SB",
+# 								"s_warehouse": purchase_receipt.supplier_warehouse,  # Dynamically set s_warehouse
+#                                 "t_warehouse": purchase_receipt.set_warehouse,  # Dynamically set t_warehouse
+# 								"stock_uom": rm_item_data["stock_uom"],
+# 								"subcontracted_item": rm_item_data["main_item_code"],
+# 								"allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
+# 							}
+# 							console("Required Items",items_dict).log()
+# 							stock_entry.append("items", items_dict)
+# 							update_supplied_qty(rm_item_data["name"], qty)
+# 					else:
+# 						# frappe.throw(_("No matching item found for item_code {} in Purchase Order").format(rm_item_code))
+# 						console("No matching item found for item_code", rm_item_code).log()
+# 						continue
+# 					# else:
+# 					# 	qty = 0
+# 					# items_dict = {
+# 					# 	rm_item_code: {
+# 					# 		"po_detail": rm_item_data.get("name"),
+# 					# 		"item_name": rm_item_data["item_name"],
+# 					# 		"description": item_wh.get(rm_item_code, {}).get("description", ""),
+# 					# 		"qty": rm_item_data["qty"],
+# 					# 		"from_warehouse": rm_item_data["warehouse"],
+# 					# 		"stock_uom": rm_item_data["stock_uom"],
+# 					# 		"serial_no": rm_item_data.get("serial_no"),
+# 					# 		"batch_no": rm_item_data.get("batch_no"),
+# 					# 		"main_item_code": rm_item_data["item_code"],
+# 					# 		"allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
+# 					# 	}
+# 					# }
+# 					# items_dict = {
+#                     #     "item_code": rm_item_code,
+#                     #     "po_detail": rm_item_data.get("name"),
+#                     #     "item_name": item_wh.get(rm_item_code, {}).get("item_name", ""),
+#                     #     "description": item_wh.get(rm_item_code, {}).get("description", ""),
+#                     #     "qty": qty,
+#                     #     "s_warehouse": rm_item_data["reserve_warehouse"],
+# 					# 	"t_warehouse": "GHafoor Bhai Weaving Service - HT_SB",
+#                     #     "stock_uom": rm_item_data["stock_uom"],
+#                     #     "subcontracted_item": rm_item_data["main_item_code"],
+#                     #     "allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
+#                     # }
+# 					# stock_entry.append("items", items_dict)
 		
-		stock_entry.insert()
-		frappe.db.commit()
+# 		stock_entry.insert()
+# 		frappe.db.commit()
 
 		
 			
-		return stock_entry.as_dict()
-	else:
-		frappe.throw(_("No Items selected for transfer"))
-	return purchase_order.name
+# 		return stock_entry.as_dict()
+# 	else:
+# 		frappe.throw(_("No Items selected for transfer"))
+# 	return purchase_order.name
+
+## Duplicate of above method
+# @frappe.whitelist()
+# def make_rm_stock_entry(purchase_order, items,purchase_receipt):
+# 	console("hdddddddddddd").log()
+# 	console("purchase_order",purchase_order).log()
+# 	console("items",items).log()
+
+
+# 	rm_items = get_supplied_items(purchase_order)
+	
+# 	rm_items_list = rm_items
+
+# 	# rm_items_list = rm_items
+
+# 	# if isinstance(rm_items, str):
+# 	# 	rm_items_list = json.loads(rm_items)
+# 	# elif not rm_items:
+# 	# 	frappe.throw(_("No Items available for transfer"))
+
+# 	if isinstance(items, str):
+# 		grn_items_list = json.loads(items)
+		
+# 	elif not grn_items_list:
+# 		frappe.throw(_("No Items available for transfer"))
+
+# 	if grn_items_list:
+# 		# fg_items = list(set(d["rm_item_code"] for d in grn_items_list))
+# 		fg_items = list(set(d["item_code"] for d in grn_items_list))
+
+# 	else:
+# 		frappe.throw(_("No Items selected for transfer"))
+
+# 	if purchase_order:
+# 		purchase_order = frappe.get_doc("Purchase Order", purchase_order)
+  
+# 	if purchase_receipt:
+# 		purchase_receipt = frappe.get_doc("Purchase Receipt", purchase_receipt)
+    
+#     if fg_items:
+#         stock_entry = frappe.new_doc("Stock Entry")
+#         stock_entry.purpose = "Send to Subcontractor"
+#         stock_entry.stock_entry_type = "Send to Subcontractor"
+#         stock_entry.supplier = purchase_receipt.stock_supplier_
+#         stock_entry.supplier_name = purchase_receipt.stock_supplier_
+#         stock_entry.company = purchase_order.company
+#         stock_entry.from_warehouse = purchase_receipt.supplier_warehouse
+#         stock_entry.to_warehouse = purchase_receipt.set_warehouse
+#         stock_entry.dn_type = "Stock Yarn Dying"
+#         stock_entry.set_stock_entry_type()
+
+#         for item in grn_items_list:
+#             # Loop through consolidated items and add them to the Stock Entry
+#             items_dict = {
+#                 "item_code": item["item_code"],
+#                 "qty": item["supplied_qty"],
+#                 "s_warehouse": purchase_receipt.supplier_warehouse,
+#                 "t_warehouse": purchase_receipt.set_warehouse,
+#                 "stock_uom": item.get("stock_uom"),
+#                 "subcontracted_item": item.get("parent_item_codes", [])[0],
+#                 "allow_alternative_item": item_wh.get(item["item_code"], {}).get("allow_alternative_item"),
+#             }
+#             stock_entry.append("items", items_dict)
+#             for row_name in item.get("item_row_names", []):
+#                 update_supplied_qty(row_name, item["supplied_qty"])
+
+#         stock_entry.insert()
+#         frappe.db.commit()
+#         return stock_entry.as_dict()
+#     else:
+#         frappe.throw(_("No Items selected for transfer"))
+
+    
+	# if fg_items:
+	# 	items = tuple(set(d["item_code"] for d in grn_items_list))
+	# 	item_wh = get_item_details(items)
+		
+
+	# 	stock_entry = frappe.new_doc("Stock Entry")
+	# 	stock_entry.purpose = "Send to Subcontractor"
+	# 	stock_entry.stock_entry_type = "Send to Subcontractor"
+	# 	# stock_entry.purchase_order = purchase_order.name
+	# 	stock_entry.supplier = purchase_receipt.stock_supplier_  
+	# 	stock_entry.supplier_name = purchase_receipt.stock_supplier_ 
+	# 	# stock_entry.supplier_address = purchase_order.supplier_address
+	# 	# stock_entry.address_display = purchase_order.address_display
+	# 	stock_entry.company = purchase_order.company
+	# 	stock_entry.from_warehouse = purchase_receipt.supplier_warehouse
+	# 	stock_entry.to_warehouse = purchase_receipt.set_warehouse
+	# 	stock_entry.dn_type = "Stock Yarn Dying"
+	# 	stock_entry.set_stock_entry_type()
+
+	# 	for item_code in fg_items:
+	# 		for rm_item_data in rm_items_list:
+	# 			if rm_item_data["rm_item_code"] == item_code:
+	# 				console("enter in if item code",).log()
+	# 				rm_item_code = rm_item_data["rm_item_code"]
+	# 				rm_item_row_name = rm_item_data["name"]
+					
+					
+	# 				matching_item = next((item for item in grn_items_list if item["item_code"] == rm_item_code and item["item_row_name"] == rm_item_row_name ), None)
+	# 				qty = 0
+	# 				console("matching_item",matching_item).log()
+					
+	# 				if matching_item:
+	# 					console("Matching item found", matching_item).log()
+	# 					qty = matching_item.get("supplied_qty", 0)
+						
+
+	# 					if qty :
+	# 						items_dict = {
+	# 							"item_code": rm_item_code,
+	# 							"po_detail": rm_item_data.get("name"),
+	# 							"item_name": item_wh.get(rm_item_code, {}).get("item_name", ""),
+	# 							"description": item_wh.get(rm_item_code, {}).get("description", ""),
+	# 							"qty": qty,
+	# 							"s_warehouse": purchase_receipt.supplier_warehouse,  # Dynamically set s_warehouse
+    #                             "t_warehouse": purchase_receipt.set_warehouse,  # Dynamically set t_warehouse
+	# 							"stock_uom": rm_item_data["stock_uom"],
+	# 							"subcontracted_item": rm_item_data["main_item_code"],
+	# 							"allow_alternative_item": item_wh.get(rm_item_code, {}).get("allow_alternative_item"),
+	# 						}
+	# 						console("Required Items",items_dict).log()
+	# 						stock_entry.append("items", items_dict)
+	# 						update_supplied_qty(rm_item_data["name"], qty)
+	# 				else:
+	# 					# frappe.throw(_("No matching item found for item_code {} in Purchase Order").format(rm_item_code))
+	# 					console("No matching item found for item_code", rm_item_code).log()
+	# 					continue
+					
+		
+	# 	stock_entry.insert()
+	# 	frappe.db.commit()
+
+		
+			
+	# 	return stock_entry.as_dict()
+	# else:
+	# 	frappe.throw(_("No Items selected for transfer"))
+	# return purchase_order.name
+    
+
+@frappe.whitelist()
+def make_rm_stock_entry(purchase_order, items, purchase_receipt):
+    # Parse items JSON into a Python object
+    items = json.loads(items) if isinstance(items, str) else items
+
+    if not items or not purchase_order:
+        frappe.throw(_("No items or purchase order found for Stock Entry creation."))
+
+    # Fetch the Purchase Receipt document
+    purchase_receipt_doc = frappe.get_doc("Purchase Receipt", purchase_receipt)
+
+    # Validate that supplier_warehouse and set_warehouse fields are present
+    if not purchase_receipt_doc.supplier_warehouse or not purchase_receipt_doc.set_warehouse:
+        frappe.throw(_("Supplier Warehouse or Target Warehouse is missing in the Purchase Receipt."))
+
+    # Log received data for debugging
+    frappe.log_error(f"Received purchase_order: {purchase_order}")
+    frappe.log_error(f"Received items: {items}")
+
+    # Process and create a single Stock Entry
+    stock_entry = frappe.new_doc("Stock Entry")
+    stock_entry.purpose = "Send to Subcontractor"
+    stock_entry.stock_entry_type = "Send to Subcontractor"
+    stock_entry.purchase_receipt = purchase_receipt
+    stock_entry.supplier = purchase_receipt_doc.stock_supplier_
+    stock_entry.supplier_name = purchase_receipt_doc.stock_supplier_
+    stock_entry.company = purchase_receipt_doc.company
+    stock_entry.from_warehouse = purchase_receipt_doc.supplier_warehouse
+    stock_entry.to_warehouse = purchase_receipt_doc.set_warehouse
+    stock_entry.dn_type = "Stock Yarn Dying"
+    stock_entry.set_stock_entry_type()
+
+    # Add consolidated items
+    for item in items:
+        stock_entry.append("items", {
+            "item_code": item["item_code"],
+            "qty": item["supplied_qty"],
+            "s_warehouse": purchase_receipt_doc.supplier_warehouse,  # Access from Purchase Receipt doc
+            "t_warehouse": purchase_receipt_doc.set_warehouse,      # Access from Purchase Receipt doc
+            "stock_uom": item.get("stock_uom"),
+            "subcontracted_item": item.get("parent_item_codes", [None])[0],
+        })
+
+    # Save and commit the Stock Entry
+    stock_entry.insert()
+    frappe.db.commit()
+    return stock_entry.as_dict()
 
 
 def get_supplied_items(purchase_order):
@@ -365,6 +556,41 @@ def fetch_weave_items(job_no, purchase_type, supplier):
     return raw_list
 
 
+# @frappe.whitelist()
+# def fetch_supplied_items(stock_supplier, po_type):
+	
+#     console("Supplier",stock_supplier).log()
+#     console("Po type",po_type).log()
+   
+#     result = []
+
+#     po_list = frappe.db.sql("""
+#         SELECT name
+#         FROM `tabPurchase Order`
+#         WHERE supplier = %s AND purchase_type = %s
+#     """, (stock_supplier, po_type), as_dict=True)
+
+#     console("PO List",po_list).log()
+
+
+#     if po_list:
+#         po_names = [po['name'] for po in po_list]
+
+#         result = frappe.db.sql("""
+#             SELECT 
+#                 si.main_item_code,si.rm_item_code, si.required_qty, si.supplied_qty,si.parent,si.name,
+#                 i.finish_weight_unit
+#             FROM 
+#                 `tabPurchase Order Item Supplied` si
+#             JOIN 
+#                 `tabPurchase Order Item` i ON si.parent = i.parent
+#             WHERE 
+#                 si.parent IN (%s) 
+#         """ % ','.join(['%s'] * len(po_names)), tuple(po_names), as_dict=True)
+
+#     return result
+
+
 @frappe.whitelist()
 def fetch_supplied_items(stock_supplier, po_type):
 	
@@ -387,8 +613,7 @@ def fetch_supplied_items(stock_supplier, po_type):
 
         result = frappe.db.sql("""
             SELECT 
-                si.main_item_code,si.rm_item_code, si.required_qty, si.supplied_qty,si.parent,si.name,
-                i.finish_weight_unit
+               si.*, i.*
             FROM 
                 `tabPurchase Order Item Supplied` si
             JOIN 

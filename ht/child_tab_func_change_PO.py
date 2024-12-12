@@ -32,6 +32,30 @@ from frappe.utils import get_site_name
 
 
 
+#Overriding exisiting returned qty against Purchase receipt
+def custom_get_returned_qty_map(purchase_receipt):
+    console("enter in my custom app mee").log()
+    """Custom version of get_returned_qty_map"""
+    returned_qty_map = frappe._dict(
+        frappe.db.sql(
+            """select pr_item.purchase_receipt_item, sum(abs(pr_item.qty)) as qty
+            from `tabPurchase Receipt Item` pr_item, `tabPurchase Receipt` pr
+            where pr.name = pr_item.parent
+                and pr.docstatus = 1
+                and pr.is_return = 1
+                and pr.return_against = %s
+            """,
+            purchase_receipt,
+        )
+    )
+    frappe.log_error(message=returned_qty_map, title="Returned Quantity Map")
+    return returned_qty_map
+
+# Monkey patch
+from erpnext.stock.doctype.purchase_receipt import purchase_receipt
+purchase_receipt.get_returned_qty_map = custom_get_returned_qty_map
+
+
 def calculate_item_values(self):
 	console("Checking right method").log()
 

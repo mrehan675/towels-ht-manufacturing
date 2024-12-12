@@ -1,15 +1,562 @@
 
+
+
+
 frappe.ui.form.on('Purchase Order', {
     refresh(frm) {
         setTimeout(() => {
             frm.remove_custom_button('Update Items');
             
-        }, 10);
+        }, 10);        
     }
+    
 });
 
 
+
+// Weave Service
+function update_weave_service(frm){
+
+    // Update Item Table
+    frappe.call({
+        method: "ht.utils.purchase_order.setting_items",
+        args: {
+            sales_order_no: frm.doc.sales_order,
+            purchase_type: frm.doc.purchase_type
+        },
+        callback: function (r) {
+            if (r.message) {
+                r.message.forEach(row => {
+                    // Find matching row in the child table
+                    const existing_row = frm.doc.items.find(child_row => child_row.item_code === row.item_code);
+
+                    if (existing_row) {
+                        console.log(`Updating row for item_code: ${row.item_code}`);
+                        let total_qty = 0;
+                        //mtr
+                        if (row.cut_length && cur_frm.doc.purchase_type === "Weaving Service" && row.weight_measuring_unit === "GM/MTR") {
+                            console.log("total mtr");
+                            total_qty = row.total_secondary_qty_with_b_percent;
+                        }
+                
+                        else{
+                            console.log("total parent");
+                            total_qty = row.total_parent_qty_with_b_percent;
+                        }
+                                                            
+                        // Define required variables
+                        const parent_item_name = row.variant_of;
+                        const item_code = row.item_code;
+                        const item_name = row.item_name;
+                        const description = row.description;
+                        const net_weight = row.net_weight;
+                        const weight_measuring_unit = row.weight_measuring_unit;
+                        const greigh_weight = row.greigh_weight;
+                        const total_parent_qty_with_b_percent = row.total_parent_qty_with_b_percent;
+                        const total_secondary_qty_with_b_percent = (total_qty === row.total_secondary_qty_with_b_percent) ? total_qty : 0;
+                        const sales_order_qty = total_qty; // pcs or mtr
+                        const order_place_qty = row.order_placed_qty || 0;
+                        const balance_qty = (total_qty - (row.order_placed_qty || 0)) || 0;
+                        const so_row_name = row.name; 
+
+                        
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, 'item_code', item_code);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, 'item_name', item_name);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, 'description', description);    
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, 'uom', "lbs");                                
+                        // frappe.model.set_value(existing_row.doctype, existing_row.name, 'qty',total_parent_qty_with_b_percent);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, 'parent_item', parent_item_name);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, 'finish_weight_unit', row.net_weight);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, 'finish_weight_uom', weight_measuring_unit);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, 'greigh_weigh_unit', greigh_weight);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, 'greigh_weigh_uom', weight_measuring_unit);
+                        // if (frm.doc.purchase_type == "Weaving Service" && weight_measuring_unit == "GM/MTR"){
+                        //     frappe.model.set_value(existing_row.doctype, existing_row.name, 'total_parent_qty', total_secondary_qty_with_b_percent);
+                        // }
+                        if (frm.doc.purchase_type == "Weaving Service" && weight_measuring_unit == "GM/MTR"){
+                            frappe.model.set_value(existing_row.doctype, existing_row.name, 'total_parent_qty', total_secondary_qty_with_b_percent);
+                            frappe.model.set_value(existing_row.doctype, existing_row.name, 'qty',total_secondary_qty_with_b_percent);
+                        }
+                        else{
+
+                            frappe.model.set_value(existing_row.doctype, existing_row.name, 'total_parent_qty', total_parent_qty_with_b_percent);
+                            frappe.model.set_value(existing_row.doctype, existing_row.name, 'qty',total_parent_qty_with_b_percent);
+
+                        }                            
+                        frappe.model.set_value(existing_row.doctype, existing_row.name,'so_row_name', so_row_name);
+
+                    } 
+                    else {
+                        console.warn(`Row with item_code ${row.item_code} not found in the child table.`);
+                    }
+                });
+
+                // Refresh the child table field after all updates
+                frm.refresh_field("items");
+            } 
+            else {
+                console.error("No data returned from the server-side method.");
+            }
+        }
+    });
+
+    
+    // Update Raw Material
+    frappe.call({
+        method: "ht.utils.purchase_order.fetch_raw_material_items",
+        args: {
+            sales_order_no: cur_frm.doc.sales_order,
+            purchase_type: cur_frm.doc.purchase_type
+        },
+        callback: (r) => {
+            if (r.message) {
+                for (let row of r.message) {
+
+                    const existing_row = cur_frm.doc.supplied_items.find(child_row => 
+                        child_row.main_item_code === row.parent_item && 
+                        child_row.item_code === row.item_code &&
+                        child_row.component === row.component
+                    );
+
+                    if (existing_row) {
+                        console.log("exi",existing_row);
+                        console.log(`Updating row for main_item_code: ${row.parent_item}, item_code: ${row.item_code}`);
+                        // Update the existing row with the fetched data
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, "main_item_code", row.parent_item);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, "item_code", row.item_code);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, "description", row.uom);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, "rm_item_code", row.raw_mat_item);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, "rate", row.rate_per_lbs);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, "actual_qty", row.consumption_lbs);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, "component", row.component);
+                        frappe.model.set_value(existing_row.doctype, existing_row.name, "consumption", row.consumption_);
+                    } 
+                    else {
+                        console.warn(`No matching row found for main_item_code: ${row.parent_item}, item_code: ${row.item_code}`);
+                    }
+                    
+                
+                
+                
+            }
+            frm.refresh_field("supplied_items");
+        }
+        }
+    });
+
+
+}
+
+
+
+//Yarn Dying
+function update_yarn_dying(frm){
+    console.log("Enter in YARN DYING");
+    
+    //fetch so raw material and set in Po item table
+    frappe.call({
+        async: false,
+        method: "ht.utils.purchase_order.fetch_raw_material_items",
+        args: {
+            sales_order_no: cur_frm.doc.sales_order,
+            purchase_type: cur_frm.doc.purchase_type
+        },
+        callback: function (r) {
+            if (r.message) {
+
+                r.message.forEach(row => {
+                    // Find matching row in the child table
+                    const existing_row = frm.doc.items.find(child_row => child_row.item_code === row.raw_mat_item && child_row.parent_item === row.parent_item);
+                    const cdt = existing_row.doctype;
+                    const cdn = existing_row.name;
+                    if (existing_row) {
+                        
+                        console.log(`Updating row for item_code: ${row.raw_mat_item}`);
+                        const so_row_name = row.name;
+                        const parent_item_name = row.parent_item;
+                        const dye_raw_mat_item_code = row.raw_mat_item;
+                        const dye_raw_mat_item_name = row.raw_mat_item_name;
+                        const dye_raw_item_description = row.raw_mat_item_name;
+                        const dye_consumption_lbs = row.consumption_lbs;
+                        const yarn_sales_order_qty = row.consumption_lbs;
+                        const yarn_order_place_qty = row.order_placed_qty || 0;
+                        const yarn_balance_qty = ((row.consumption_lbs) - (row.order_placed_qty)) || 0;
+
+                        
+                        
+                        frappe.model.set_value(cdt, cdn, 'description', dye_raw_item_description);
+                        frappe.model.set_value(cdt, cdn, 'uom', "lbs");
+                        frappe.model.set_value(cdt, cdn, 'qty', dye_consumption_lbs);
+                        frappe.model.set_value(cdt, cdn, 'so_row_name', so_row_name);
+
+                    
+                    
+                    }
+                });         
+            }
+        }
+    });
+
+    // Supplied item table Raw materials
+    frappe.call({
+        method: "ht.utils.purchase_order.fetch_raw_material_items",
+        args: {
+            sales_order_no: cur_frm.doc.sales_order,
+            purchase_type: cur_frm.doc.purchase_type
+        },
+        callback: (r) => {
+            if (r.message) {
+                for (let row of r.message) {
+                    const existing_row = cur_frm.doc.supplied_items.find(child_row => 
+                        child_row.main_item_code === row.raw_mat_item && 
+                        child_row.rm_item_code === row.undye_raw_item 
+                    );
+
+                    const cdt = existing_row.doctype;
+                    const cdn = existing_row.name;
+
+                    if (existing_row) {
+
+                        frappe.model.set_value(cdt, cdn, "main_item_code", row.raw_mat_item);
+                        frappe.model.set_value(cdt, cdn, "rm_item_code", row.undye_raw_item);
+                        frappe.model.set_value(cdt, cdn, "rate", row.rate_per_lbs);
+                        frappe.model.set_value(cdt, cdn, "required_qty", row.consumption_lbs);
+                        frappe.model.set_value(cdt, cdn, "component", row.component);
+                        frappe.model.set_value(cdt, cdn, "consumption", row.consumption_);
+                    }
+                }
+            }
+        }
+    });
+
+}
+
+
+
+
+
+//Stitching Service || Stitching Bathrobe  Service
+function update_stitching_and_bathrobe_both_service(frm){
+    console.log("enter in bathrobe");
+
+    //fetch so item table in Po item table
+    frappe.call({
+        async: false,
+        method: "ht.utils.purchase_order.setting_items",
+        args: {
+            sales_order_no: cur_frm.doc.sales_order,
+            purchase_type: cur_frm.doc.purchase_type
+        },
+        callback: function (r) {
+            if (r.message) {
+
+                r.message.forEach(row => {
+                    // Find matching row in the child table
+                    // const existing_row = frm.doc.items.find(child_row => child_row.item_code === row.item_code && child_row.parent_item === row.variant_of && child_row.item_name === row.item_name && child_row.orginal_item === row.orginal_item );
+                    
+                    // Find matching row in the child table
+                    const existing_row = frm.doc.items.find(child_row => 
+                        child_row.item_code === row.item_code &&
+                        child_row.parent_item === row.variant_of &&
+                        child_row.orginal_item === row.orginal_item
+                    );
+                    console.log("existing_row",existing_row);
+                    if (existing_row) {
+                        const cdt = existing_row.doctype;
+                        const cdn = existing_row.name;
+                        
+                        console.log(`Updating row for item_code: ${row.raw_mat_item}`);
+                        const parent_item_name = row.variant_of;
+                        const item_code = row.item_code;
+                        const item_name = row.item_name;
+                        const description = row.description;
+                        const qty = (row.qty * (1 + row.b_percent / 100)); // in lbs
+                        const qty_in_pcs = row.qty; // in pcs
+                        const qty_in_kgs = ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000)); // in kgs
+                        const uom = 'lbs';
+                        const finish_weight = row.net_weight;
+                        const cut_length = row.cut_length;
+                        const weight_measuring_unit = row.weight_measuring_unit;
+                        const b_percent = row.b_percent;
+                        const orginal_item = row.orginal_item;
+                        const so_row_name = row.name;
+                        const stitch_sales_order_qty = row.qty_with_b_percent;
+                        const stitch_order_place_qty = row.order_placed_qty || 0;
+                        const stitch_balance_qty = ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0;
+
+                        
+                        frappe.model.set_value(cdt, cdn, 'parent_item', parent_item_name);
+                        frappe.model.set_value(cdt, cdn, 'item_code', item_code);
+                        frappe.model.set_value(cdt, cdn, 'item_name', item_name);
+                        frappe.model.set_value(cdt, cdn, 'description', description);
+                        frappe.model.set_value(cdt, cdn, 'uom', uom);
+                        frappe.model.set_value(cdt, cdn, 'qty', qty);
+                        frappe.model.set_value(cdt, cdn, 'qty_in_pcs', qty_in_pcs);
+                        frappe.model.set_value(cdt, cdn, 'qty_in_kgs', qty_in_kgs);
+                        frappe.model.set_value(cdt, cdn, 'finish_weight', finish_weight);
+                        frappe.model.set_value(cdt, cdn, 'weight_measuring_unit', weight_measuring_unit);
+                        frappe.model.set_value(cdt, cdn, 'b_percent', b_percent);
+                        frappe.model.set_value(cdt, cdn, 'orginal_item', orginal_item);
+                        frappe.model.set_value(cdt, cdn, 'so_row_name', so_row_name);
+                        frappe.model.set_value(cdt, cdn, 'cut_length', cut_length);
+
+                        
+                    
+                    
+                    }
+                });         
+            }
+        }
+    });
+
+    frm.refresh_field("items");  
+    
+    
+    // Supplied item table 
+    frappe.call({
+        method: "ht.utils.purchase_order.fetch_variant_into_raw",
+        args: {
+            sales_order_no: cur_frm.doc.sales_order,
+            purchase_type: cur_frm.doc.purchase_type
+        },
+        callback: (r) => {
+            if (r.message) {
+                for (let row of r.message) {
+                    const existing_row = cur_frm.doc.supplied_items.find(child_row => 
+                        child_row.main_item_code === row.variant_of && 
+                        child_row.rm_item_code === row.item_code 
+                    );
+
+                    const cdt = existing_row.doctype;
+                    const cdn = existing_row.name;
+
+                    // setting new formula for req_qty
+                    const req_qty = ((row.qty) * (1 + (row.b_percent / 100)));
+
+                    const req_qty_lbs = ((row.qty) * (1 + (row.b_percent / 100))) * (row.net_weight / 1000) * 2.2046;
+
+
+                    if (existing_row) {
+
+                        frappe.model.set_value(cdt, cdn, "main_item_code", row.variant_of);
+                        frappe.model.set_value(cdt, cdn, "rm_item_code", row.item_code);
+                        frappe.model.set_value(cdt, cdn, "required_qty", req_qty);
+                        frappe.model.set_value(cdt,cdn, "required_qty_lbs", req_qty_lbs );
+
+
+                    }
+                }
+            }
+        }
+    });
+    
+    
+}
+
+
+//Dying Service
+function update_dying_service(frm){
+
+    //fetch so item table in Po item table
+    frappe.call({
+        async: false,
+        method: "ht.utils.purchase_order.setting_items",
+        args: {
+            sales_order_no: cur_frm.doc.sales_order,
+            purchase_type: cur_frm.doc.purchase_type
+        },
+        callback: function (r) {
+            if (r.message) {
+
+                r.message.forEach(row => {
+
+                    let qty_in_kgs = 0;
+                    let qty = 0;
+
+                    if (row.cut_length && cur_frm.doc.purchase_type === "Dying Service" && row.weight_measuring_unit === "GM/MTR") {
+                        //If bathrobe item
+                        console.log("enter in js dying service if");
+                        //new_weight is finish_weight
+                        
+                        qty_in_kgs = (row.net_weight/1000);
+                        qty = (row.net_weight/1000)* 2.2046;
+                        
+                    }
+                    else{
+                        // Normal towel item 
+                        qty_in_kgs =  ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000));
+                        qty = ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000)) * 2.2046;
+
+                    }
+
+                    // Find matching row in the child table
+                    // const existing_row = frm.doc.items.find(child_row => child_row.item_code === row.item_code && child_row.parent_item === row.variant_of && child_row.item_name === row.item_name && child_row.orginal_item === row.orginal_item );
+                    
+                    // Find matching row in the child table
+                    const existing_row = frm.doc.items.find(child_row => 
+                        child_row.item_code === row.item_code &&
+                        child_row.parent_item === row.variant_of &&
+                        child_row.item_name === row.item_name
+                    );
+                    console.log("existing_row",existing_row);
+                    if (existing_row) {
+                        const cdt = existing_row.doctype;
+                        const cdn = existing_row.name;
+                        
+                        console.log(`Updating row for item_code: ${row.raw_mat_item}`);
+                        const parent_item_name = row.variant_of;
+                        const item_code = row.item_code;
+                        const item_name = row.item_name;
+                        const description = row.description;
+                        const qty = qty;  //lbs
+                        const qty_in_pcs = row.qty * (1 + row.b_percent / 100); // in pcs
+                        const qty_in_kgs = qty_in_kgs; // in kgs
+                        const uom = 'lbs';
+                        const finish_weight = row.net_weight;
+                        const weight_measuring_unit = row.weight_measuring_unit;
+                        const b_percent = row.b_percent;
+                        const dying_sales_order_qty = row.qty_with_b_percent;
+                        const dying_order_place_qty = row.order_placed_qty || 0;
+                        const dying_balance_qty = ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0;
+
+
+
+                        frappe.model.set_value(cdt, cdn, 'parent_item', parent_item_name);
+                        frappe.model.set_value(cdt, cdn, 'item_code', item_code);
+                        frappe.model.set_value(cdt, cdn, 'item_name', item_name);
+                        frappe.model.set_value(cdt, cdn, 'description', description);
+                        frappe.model.set_value(cdt, cdn, 'uom', uom);
+                        frappe.model.set_value(cdt, cdn, 'qty', qty_in_pcs);
+                        frappe.model.set_value(cdt, cdn, 'qty_in_pcs', qty);
+
+                        //last code
+                        // frappe.model.set_value(cdt, cdn, 'qty', row.qty);
+                        // frappe.model.set_value(cdt, cdn, 'qty_in_pcs', row.qty_in_pcs);
+
+                        frappe.model.set_value(cdt, cdn, 'qty_in_kgs', qty_in_kgs);
+                        frappe.model.set_value(cdt, cdn, 'finish_weight', finish_weight);
+                        frappe.model.set_value(cdt, cdn, 'weight_measuring_unit', weight_measuring_unit);
+                        frappe.model.set_value(cdt, cdn, 'b_percent', b_percent);
+                        frappe.model.set_value(cdt, cdn, 'so_row_name', so_row_name);
+                    
+                        
+                        
+                    
+                    
+                    }
+                });         
+            }
+        }
+    });
+
+    frm.refresh_field("items");  
+    
+
+    // Supplied item table 
+    frappe.call({
+        method: "ht.utils.purchase_order.fetch_parent_items_of_so",
+        args: {
+            sales_order_no: cur_frm.doc.sales_order,
+            purchase_type: cur_frm.doc.purchase_type
+        },
+        callback: (r) => {
+            if (r.message) {
+                for (let row of r.message) {
+                    const existing_row = cur_frm.doc.supplied_items.find(child_row => 
+                        child_row.main_item_code === row.variant_of && 
+                        child_row.rm_item_code === row.item_code 
+                    );
+
+                    const cdt = existing_row.doctype;
+                    const cdn = existing_row.name;
+
+                    // setting new formula for req_qty
+                    let req_qty = ((row.greigh_weight) * (row.total_parent_qty_with_b_percent / 1000) * 2.2046);
+
+                    if (existing_row) {
+
+                        frappe.model.set_value(cdt, cdn, "main_item_code", row.variant_of);
+                        frappe.model.set_value(cdt, cdn, "rm_item_code", row.item_code);
+                        frappe.model.set_value(cdt, cdn, "required_qty", req_qty);
+
+
+                    }
+                }
+            }
+        }
+    });
+    
+}
+
+
+
 frappe.ui.form.on("Purchase Order", {
+    update_values: function (frm) {
+    
+//First Fetching Values based on each Po type
+    if (frm.doc.purchase_type == 'Weaving Service'){
+        update_weave_service(frm);
+    }
+
+    if (frm.doc.purchase_type == 'Yarn Dying'){
+        update_yarn_dying(frm);
+    }
+    
+    if(frm.doc.purchase_type == 'Stitching Service' || frm.doc.purchase_type == 'Stitching Bathrobe  Service'){
+           
+        update_stitching_and_bathrobe_both_service(frm)
+    }
+
+    if (frm.doc.purchase_type == 'Dying Service'){
+        update_dying_service(frm);
+    }
+
+  
+
+//Calling fields level method for each type
+    frm.doc.items.forEach((row) => {
+    
+        if (frm.doc.purchase_type == 'Weaving Service'){
+                
+            setTimeout(() => {
+                cal_weaving_rate(frm, row.doctype, row.name);
+                set_finish_lbs(frm, row.doctype, row.name);
+                set_greigh_lbs(frm, row.doctype, row.name);
+                set_gross_lbs(frm, row.doctype, row.name);
+                cal_finish_lbs(frm,row.doctype, row.name);
+            }, 500);
+            
+            
+        
+        }
+
+        else if (frm.doc.purchase_type == 'Stitching Bathrobe  Service'){
+            console.log("ebathrobe");
+            setTimeout(() =>{
+                cal_consumption_meter(frm,row.doctype, row.name);
+
+            },500);
+
+
+        }
+
+        else if (frm.doc.purchase_type == 'Dying Service'){
+            console.log("ebathrobe");
+           
+            setTimeout(() =>{
+                cal_dying_service_lbs_qty(frm,row.doctype, row.name)
+
+            },500);
+
+
+
+        }
+
+    });
+    
+    frm.refresh_field("items");    
+    
+    },
     refresh: function(frm) {
         // Show the button only if the document is submitted
         if (frm.doc.docstatus === 1) {
@@ -116,7 +663,16 @@ frappe.ui.form.on("Purchase Order", {
     purchase_type: function(frm) {
         // Update the label when purchase_type changes
         update_qty_label(frm);
+    },
+    after_save: function(frm){
+        update_qty_label(frm);
+
+    },
+    validate: function(frm){
+        update_qty_label(frm);
+
     }
+    
 });
 
 
@@ -546,6 +1102,14 @@ frappe.ui.form.on('Purchase Order', {
             
         }, 100); // Adjust the delay time as needed
     }
+
+    function cal_finish_lbs(frm, cdt, cdn) {
+        setTimeout(function() {
+            let child = locals[cdt][cdn]
+                frappe.model.set_value(cdt,cdn,"net_weight",child.finish_lbs)
+          
+        }, 100); // Adjust the delay time as needed
+    }
    
    // Commenting this function due to logic change and its not require any more
     // function set_rate_per_lbs(frm, cdt, cdn) {
@@ -561,9 +1125,15 @@ frappe.ui.form.on('Purchase Order', {
     function set_finish_lbs(frm, cdt, cdn) {
         setTimeout(function() {
             var child = locals[cdt][cdn];
+
+            console.log({
+                item_code: child.item_code,
+                field_1: child.finish_weight_unit, // Example of a dependent field
+                field_2: child.qty, // Example of a dependent field
+            });
           
             frappe.model.set_value(cdt, cdn, 'finish_lbs',  (child.finish_weight_unit * child.qty * 2.2046)/1000);
-            
+            console.log("finish lbs",(child.finish_weight_unit * child.qty * 2.2046)/1000);
         }, 100); // Adjust the delay time as needed
     }
     
@@ -959,6 +1529,8 @@ async function set_item_color(frm) {
 
     
 
+
+
 // Following method is used to fetch Sales order Item
 
 const fetch_sales_order=(frm)=>{
@@ -1111,7 +1683,7 @@ const fetch_sales_order=(frm)=>{
                                 frappe.model.set_value(cdt, cdn, 'item_name', row.item_name);
                                 frappe.model.set_value(cdt, cdn, 'description', row.description);
                                 frappe.model.set_value(cdt, cdn, 'uom', "lbs");                                
-                                frappe.model.set_value(cdt,cdn, 'qty',row.total_parent_qty_with_b_percent);
+                                // frappe.model.set_value(cdt,cdn, 'qty',row.total_parent_qty_with_b_percent);
                                 frappe.model.set_value(cdt, cdn, 'parent_item', row.parent_item_name);
                                 frappe.model.set_value(cdt, cdn, 'finish_weight_unit', row.net_weight);
                                 frappe.model.set_value(cdt, cdn, 'finish_weight_uom', row.weight_measuring_unit);
@@ -1119,9 +1691,12 @@ const fetch_sales_order=(frm)=>{
                                 frappe.model.set_value(cdt, cdn, 'greigh_weigh_uom', row.weight_measuring_unit);
                                 if (frm.doc.purchase_type == "Weaving Service" && row.weight_measuring_unit == "GM/MTR"){
                                     frappe.model.set_value(cdt, cdn, 'total_parent_qty', row.total_secondary_qty_with_b_percent);
+                                    frappe.model.set_value(cdt,cdn, 'qty',row.total_secondary_qty_with_b_percent);
                                 }
                                 else{
+
                                     frappe.model.set_value(cdt, cdn, 'total_parent_qty', row.total_parent_qty_with_b_percent);
+                                    frappe.model.set_value(cdt,cdn, 'qty',row.total_parent_qty_with_b_percent);
 
                                 }
                                 frappe.model.set_value(cdt, cdn, 'so_row_name', row.so_row_name);
@@ -1153,6 +1728,7 @@ const fetch_sales_order=(frm)=>{
                                     frappe.model.set_value(cdt, cdn, "actual_qty", row.consumption_lbs);
                                     frappe.model.set_value(cdt, cdn, "component", row.component);
                                     frappe.model.set_value(cdt, cdn, "consumption", row.consumption_);
+                                
                                 }
                             }
                         }
@@ -1263,6 +1839,7 @@ const fetch_so_dying_service = (frm) => {
                         { fieldtype: 'Data', fieldname: "uom", in_list_view: 0, read_only: 1, label: __('UOM'), columns: 2 },
                         { fieldtype: 'Data', fieldname: "qty_in_pcs", in_list_view: 0, read_only: 1, label: __('Qty in Pcs'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "qty_in_kgs", in_list_view: 0, read_only: 1, label: __('Qty in Kgs'), columns: 1 },
+                        { fieldtype: 'Data', fieldname: "cut_length", in_list_view: 0, read_only: 1, label: __('Cut Length'), columns: 1 , depends_on: "eval: doc.weight_measuring_unit == 'GM/MTR'"},
                         { fieldtype: 'Data', fieldname: "finish_weight", in_list_view: 1, read_only: 1, label: __('Finish Weight'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "weight_measuring_unit", in_list_view: 0, read_only: 1, label: __('Weight Measuring Unit'), columns: 2 },
                         { fieldtype: 'Float', fieldname: "b_percent", in_list_view: 0, read_only: 1, label: __('B Percent'), columns: 2 },
@@ -1296,6 +1873,8 @@ const fetch_so_dying_service = (frm) => {
                             frappe.model.set_value(cdt, cdn, 'uom', row.uom);
                             frappe.model.set_value(cdt, cdn, 'qty', row.qty_in_pcs);
                             frappe.model.set_value(cdt, cdn, 'qty_in_pcs', row.qty);
+                            frappe.model.set_value(cdt, cdn, 'cut_length', row.cut_length);
+
 
                             //last code
                             // frappe.model.set_value(cdt, cdn, 'qty', row.qty);
@@ -1354,25 +1933,8 @@ const fetch_so_dying_service = (frm) => {
                             setTimeout(() => {
                                 let qty_in_kgs = 0;
                                 let qty = 0;
-                                //Qty in kgs=Qty in PCs(finish weight/1000) finish weight == net weight
-                                //	Quantity=Qty in PCs(finish weight/1000)*2.2046
-                                if (row.cut_length && cur_frm.doc.purchase_type === "Dying Service" && row.weight_measuring_unit === "GM/MTR") {
-                                    //If bathrobe item
-                                    console.log("enter in js dying service if");
-                                    //new_weight is finish_weight
-                                    
-                                    qty_in_kgs = (row.net_weight/1000);
-                                    qty = (row.net_weight/1000)* 2.2046;
-                                    
-                                }
-                                else{
-                                    // Normal towel item 
-                                    qty_in_kgs =  ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000));
-                                    qty = ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000)) * 2.2046;
 
-                                }
-
-                                dialog.fields_dict.items.df.data.push({
+                                let dialog_data = {
                                     "so_row_name":row.name,
                                     "parent_item_name": row.variant_of,
                                     "item_code": row.item_code,
@@ -1392,7 +1954,59 @@ const fetch_so_dying_service = (frm) => {
                                     "dying_order_place_qty": row.order_placed_qty || 0,
                                     "dying_balance_qty": ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0
 
-                                });
+                                }
+                                //Qty in kgs=Qty in PCs(finish weight/1000) finish weight == net weight
+                                //	Quantity=Qty in PCs(finish weight/1000)*2.2046
+                                if (row.cut_length && cur_frm.doc.purchase_type === "Dying Service" && row.weight_measuring_unit === "GM/MTR") {
+                                    //If bathrobe item
+                                    console.log("enter in js dying service if");
+                                    //new_weight is finish_weight
+                                    
+                                    qty_in_kgs = (row.net_weight/1000);
+                                    qty = (row.net_weight/1000)* 2.2046;
+
+                                    dialog_data["cut_length"] = row.cut_length; // Dynamically added field
+                                    dialog_data["qty_in_kgs"] = qty_in_kgs;
+                                    dialog_data["qty"] = qty;
+ 
+                                    
+                                }
+                                else{
+                                    // Normal towel item 
+                                    qty_in_kgs =  ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000));
+                                    qty = ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000)) * 2.2046;
+
+                                    dialog_data["qty_in_kgs"] = qty_in_kgs;
+                                    dialog_data["qty"] = qty;
+
+                                }
+
+                                // dialog.fields_dict.items.df.data.push({
+                                //     "so_row_name":row.name,
+                                //     "parent_item_name": row.variant_of,
+                                //     "item_code": row.item_code,
+                                //     "item_name": row.item_name,
+                                //     "description": row.description,
+                                //     // "qty": ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000)) * 2.2046, // in lbs
+                                //     // "qty_in_kgs": ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000)), // in kgs
+
+                                //     "qty": qty, // in lbs
+                                //     "qty_in_kgs": qty_in_kgs, // in kgs
+                                //     "qty_in_pcs": row.qty * (1 + row.b_percent / 100), // in pcs
+                                //     "uom": 'lbs',
+                                //     "finish_weight": row.net_weight,
+                                //     "weight_measuring_unit": row.weight_measuring_unit,
+                                //     "b_percent": row.b_percent,
+                                //     "dying_sales_order_qty": row.qty_with_b_percent,
+                                //     "dying_order_place_qty": row.order_placed_qty || 0,
+                                //     "dying_balance_qty": ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0
+
+                                // });
+                                
+                                
+                                // Push the dynamically constructed data
+                                dialog.fields_dict.items.df.data.push(dialog_data);
+
                                 frm.data = dialog.fields_dict.items.df.data;
                                 dialog.fields_dict.items.grid.refresh();
                             }, 500);

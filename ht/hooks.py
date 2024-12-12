@@ -1,6 +1,7 @@
 from . import __version__ as app_version
 from .child_tab_func_change_PO import calculate_taxes_and_totals,validate,calculate_item_values
 
+
 app_name = "ht"
 app_title = "Ht"
 app_publisher = "SRP"
@@ -106,6 +107,10 @@ doctype_js = {
 #	"ToDo": "custom_app.overrides.CustomToDo"
 # }
 
+# override_doctype_class = {
+# 	"Purchase Order": "ht.utils.overrides.purchase_order_class.CustomPurchaseOrder"
+# }
+
 # Document Events
 # ---------------
 # Hook on document methods and events
@@ -122,11 +127,11 @@ doc_events = {
 			"ht.ht_doctype_changes.set_parent_items_table",
 		]
 	},
-    "Purchase Order": {
-		"on_submit": [
-			"ht.utils.purchase_order.set_placed_order_qty",
-		]
-	},
+    # "Purchase Order": {
+	# 	"on_submit": [
+	# 		"ht.utils.purchase_order.set_placed_order_qty",
+	# 	]
+	# },
 	"Purchase Receipt": {
         "before_save": "ht.utils.purchase_receipt.set_subcontracted_items"
     }
@@ -164,6 +169,9 @@ doc_events = {
 #
 # override_whitelisted_methods = {
 #	"frappe.desk.doctype.event.event.get_events": "ht.event.get_events"
+# }
+# override_whitelisted_methods = {
+# 	"erpnext.stock.doctype.purchase_receipt.purchase_receipt.make_purchase_invoice": "ht.event.get_events"
 # }
 #
 # each overriding function accepts a `data` argument;
