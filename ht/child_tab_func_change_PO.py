@@ -130,21 +130,21 @@ def calculate_item_values(self):
 						elif item.purchase_type == 'Weaving Service' or item.purchase_type == 'Weaving Purchase Receipt':
 							if item.weight_type == 'Lower Weight':
 								
-								item.amount = flt( (item.greigh_weigh_unit/1000) * item.qty * 2.2046 * item.rate)
+								item.amount = flt( (flt(item.greigh_weigh_unit)/1000) * item.qty * 2.2046 * item.rate)
 							if item.weight_type == 'Greigh Weight':
 								
-								item.amount = flt( (item.greigh_weigh_unit/1000) * item.qty * 2.2046 * item.rate)
+								item.amount = flt( (flt(item.greigh_weigh_unit)/1000) * item.qty * 2.2046 * item.rate)
 
 							if item.weight_type == 'Finish Weight':
 							
-								item.amount = flt( (item.finish_weight_unit/1000) * item.qty * 2.2046 * item.rate)
+								item.amount = flt( (flt(item.finish_weight_unit)/1000) * item.qty * 2.2046 * item.rate)
 
 							
 							else:
 								pass
 							
 						elif item.purchase_type == 'Dying Service' or item.purchase_type == 'Dying Purchase Receipt':
-							item.amount = flt((item.qty) * (item.finish_weight/1000) * (2.2046) * (item.rate),item.precision("amount")) 
+							item.amount = flt((item.qty) * (flt(item.finish_weight_unit)/1000) * (2.2046) * (item.rate),item.precision("amount")) 
 
 						#PO Amount=Qty in Pcs*(Finish Weight/1000)*2.2046*Rate
 						

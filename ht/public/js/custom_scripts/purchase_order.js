@@ -32,6 +32,7 @@ function update_weave_service(frm){
 
                     if (existing_row) {
                         console.log(`Updating row for item_code: ${row.item_code}`);
+                                                                       
                         let total_qty = 0;
                         //mtr
                         if (row.cut_length && cur_frm.doc.purchase_type === "Weaving Service" && row.weight_measuring_unit === "GM/MTR") {
@@ -59,6 +60,8 @@ function update_weave_service(frm){
                         const balance_qty = (total_qty - (row.order_placed_qty || 0)) || 0;
                         const so_row_name = row.name; 
 
+                        const current_rate = existing_row.rate;
+
                         
                         frappe.model.set_value(existing_row.doctype, existing_row.name, 'item_code', item_code);
                         frappe.model.set_value(existing_row.doctype, existing_row.name, 'item_name', item_name);
@@ -70,6 +73,9 @@ function update_weave_service(frm){
                         frappe.model.set_value(existing_row.doctype, existing_row.name, 'finish_weight_uom', weight_measuring_unit);
                         frappe.model.set_value(existing_row.doctype, existing_row.name, 'greigh_weigh_unit', greigh_weight);
                         frappe.model.set_value(existing_row.doctype, existing_row.name, 'greigh_weigh_uom', weight_measuring_unit);
+
+                        
+
                         // if (frm.doc.purchase_type == "Weaving Service" && weight_measuring_unit == "GM/MTR"){
                         //     frappe.model.set_value(existing_row.doctype, existing_row.name, 'total_parent_qty', total_secondary_qty_with_b_percent);
                         // }
@@ -85,6 +91,12 @@ function update_weave_service(frm){
                         }                            
                         frappe.model.set_value(existing_row.doctype, existing_row.name,'so_row_name', so_row_name);
 
+                        // Restore the original rate value
+                        setTimeout(() => {
+                            frappe.model.set_value(existing_row.doctype, existing_row.name, 'rate', current_rate);
+                        }, 500);
+                        console.log("RRRRRRate",current_rate);
+
                     } 
                     else {
                         console.warn(`Row with item_code ${row.item_code} not found in the child table.`);
@@ -92,7 +104,7 @@ function update_weave_service(frm){
                 });
 
                 // Refresh the child table field after all updates
-                frm.refresh_field("items");
+                // frm.refresh_field("items");
             } 
             else {
                 console.error("No data returned from the server-side method.");
@@ -172,6 +184,7 @@ function update_yarn_dying(frm){
                     if (existing_row) {
                         
                         console.log(`Updating row for item_code: ${row.raw_mat_item}`);
+                        const current_rate = existing_row.rate;
                         const so_row_name = row.name;
                         const parent_item_name = row.parent_item;
                         const dye_raw_mat_item_code = row.raw_mat_item;
@@ -188,6 +201,12 @@ function update_yarn_dying(frm){
                         frappe.model.set_value(cdt, cdn, 'uom', "lbs");
                         frappe.model.set_value(cdt, cdn, 'qty', dye_consumption_lbs);
                         frappe.model.set_value(cdt, cdn, 'so_row_name', so_row_name);
+
+
+                        // Restore the original rate value
+                        setTimeout(() => {
+                            frappe.model.set_value(existing_row.doctype, existing_row.name, 'rate', current_rate);
+                        }, 500);
 
                     
                     
@@ -266,6 +285,7 @@ function update_stitching_and_bathrobe_both_service(frm){
                         const cdn = existing_row.name;
                         
                         console.log(`Updating row for item_code: ${row.raw_mat_item}`);
+                        const current_rate = existing_row.rate;
                         const parent_item_name = row.variant_of;
                         const item_code = row.item_code;
                         const item_name = row.item_name;
@@ -301,6 +321,11 @@ function update_stitching_and_bathrobe_both_service(frm){
                         frappe.model.set_value(cdt, cdn, 'cut_length', cut_length);
 
                         
+
+                        // Restore the original rate value
+                        setTimeout(() => {
+                            frappe.model.set_value(existing_row.doctype, existing_row.name, 'rate', current_rate);
+                        }, 500);
                     
                     
                     }
@@ -404,6 +429,7 @@ function update_dying_service(frm){
                         const cdn = existing_row.name;
                         
                         console.log(`Updating row for item_code: ${row.raw_mat_item}`);
+                        const current_rate = existing_row.rate;
                         const parent_item_name = row.variant_of;
                         const item_code = row.item_code;
                         const item_name = row.item_name;
@@ -440,7 +466,10 @@ function update_dying_service(frm){
                         frappe.model.set_value(cdt, cdn, 'so_row_name', so_row_name);
                     
                         
-                        
+                        // Restore the original rate value
+                        setTimeout(() => {
+                            frappe.model.set_value(existing_row.doctype, existing_row.name, 'rate', current_rate);
+                        }, 500);
                     
                     
                     }
@@ -620,8 +649,8 @@ function update_qty_label(frm) {
     var purchase_type = frm.doc.purchase_type;
     
     // Determine the new label
-    var new_label = purchase_type === "Dying Service" ? "Qty in pcs" : "Quantity";
-    var new_label1 = purchase_type === "Dying Service" ? "Quantity" : "Qty in pcs";
+    var new_label = purchase_type === "Dying Service" ? "Qty in pcs/mtr" : "Quantity";
+    var new_label1 = purchase_type === "Dying Service" ? "Quantity" : "Qty in pcs/mtr";
 
 
     // Set the new label for the 'qty' field in the child table
@@ -1835,11 +1864,11 @@ const fetch_so_dying_service = (frm) => {
                         { fieldtype: 'Data', fieldname: "item_name", in_list_view: 0, read_only: 1, label: __('Item Name'), columns: 2 },
                         { fieldtype: 'Data', fieldname: "description", in_list_view: 0, read_only: 1, label: __('Description'), columns: 2 },
                         { fieldtype: 'Check', fieldname: "check", label: __('Select'), in_list_view: 1, columns: 1 },
-                        { fieldtype: 'Data', fieldname: "qty", in_list_view: 1, read_only: 1, label: __('Qty'), columns: 1 },
+                        { fieldtype: 'Data', fieldname: "qty", in_list_view: 0, read_only: 1, label: __('Qty'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "uom", in_list_view: 0, read_only: 1, label: __('UOM'), columns: 2 },
-                        { fieldtype: 'Data', fieldname: "qty_in_pcs", in_list_view: 0, read_only: 1, label: __('Qty in Pcs'), columns: 1 },
+                        { fieldtype: 'Data', fieldname: "qty_in_pcs", in_list_view: 1, read_only: 1, label: __('Qty in Pcs/Mtr'), columns: 2 },
                         { fieldtype: 'Data', fieldname: "qty_in_kgs", in_list_view: 0, read_only: 1, label: __('Qty in Kgs'), columns: 1 },
-                        { fieldtype: 'Data', fieldname: "cut_length", in_list_view: 0, read_only: 1, label: __('Cut Length'), columns: 1 , depends_on: "eval: doc.weight_measuring_unit == 'GM/MTR'"},
+                        // { fieldtype: 'Data', fieldname: "cut_length", in_list_view: 0, read_only: 1, label: __('Cut Length'), columns: 1 , depends_on: "eval: doc.weight_measuring_unit == 'GM/MTR'"},
                         { fieldtype: 'Data', fieldname: "finish_weight", in_list_view: 1, read_only: 1, label: __('Finish Weight'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "weight_measuring_unit", in_list_view: 0, read_only: 1, label: __('Weight Measuring Unit'), columns: 2 },
                         { fieldtype: 'Float', fieldname: "b_percent", in_list_view: 0, read_only: 1, label: __('B Percent'), columns: 2 },
@@ -1873,7 +1902,7 @@ const fetch_so_dying_service = (frm) => {
                             frappe.model.set_value(cdt, cdn, 'uom', row.uom);
                             frappe.model.set_value(cdt, cdn, 'qty', row.qty_in_pcs);
                             frappe.model.set_value(cdt, cdn, 'qty_in_pcs', row.qty);
-                            frappe.model.set_value(cdt, cdn, 'cut_length', row.cut_length);
+                            // frappe.model.set_value(cdt, cdn, 'cut_length', row.cut_length);
 
 
                             //last code
@@ -1933,7 +1962,8 @@ const fetch_so_dying_service = (frm) => {
                             setTimeout(() => {
                                 let qty_in_kgs = 0;
                                 let qty = 0;
-
+                                let qty_in_pcs = 0;
+                                console.log("row.qty * (1 + row.b_percent / 100)",row.qty * (1 + row.b_percent / 100));
                                 let dialog_data = {
                                     "so_row_name":row.name,
                                     "parent_item_name": row.variant_of,
@@ -1945,7 +1975,7 @@ const fetch_so_dying_service = (frm) => {
 
                                     "qty": qty, // in lbs
                                     "qty_in_kgs": qty_in_kgs, // in kgs
-                                    "qty_in_pcs": row.qty * (1 + row.b_percent / 100), // in pcs
+                                    "qty_in_pcs": qty_in_pcs, // in pcs
                                     "uom": 'lbs',
                                     "finish_weight": row.net_weight,
                                     "weight_measuring_unit": row.weight_measuring_unit,
@@ -1968,6 +1998,13 @@ const fetch_so_dying_service = (frm) => {
                                     dialog_data["cut_length"] = row.cut_length; // Dynamically added field
                                     dialog_data["qty_in_kgs"] = qty_in_kgs;
                                     dialog_data["qty"] = qty;
+
+                                    dialog_data["qty_in_pcs"] = ((row.secondary_qty_with_b_percent) - (row.order_placed_qty)) || 0; // in mtr
+                                    dialog_data["dying_sales_order_qty"] = row.secondary_qty_with_b_percent;
+                                    dialog_data["dying_order_place_qty"]= row.order_placed_qty || 0;
+                                    dialog_data["dying_balance_qty"] = ((row.secondary_qty_with_b_percent) - (row.order_placed_qty)) || 0;
+
+
  
                                     
                                 }
@@ -1978,6 +2015,8 @@ const fetch_so_dying_service = (frm) => {
 
                                     dialog_data["qty_in_kgs"] = qty_in_kgs;
                                     dialog_data["qty"] = qty;
+                                    dialog_data["qty_in_pcs"] = ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0;//pcs
+
 
                                 }
 

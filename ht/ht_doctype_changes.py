@@ -23,7 +23,7 @@ def update_raw_materials_table(self, method):
 """ Set parent item details for use in print layouts etc"""
 
 def set_parent_items_table(self, method):
-	self.parent_items_table  = []
+	self.parent_items_tables  = []
 	seen_values = set()
 	unique_records_array = []
 
@@ -87,10 +87,10 @@ def set_parent_items_table(self, method):
 				"total_stitching_amount": d.total_stitching_amount or 0.0,
 			}
 
-			self.append("parent_items_table", row)
+			self.append("parent_items_tables", row)
 
 
-	for prt in self.parent_items_table:
+	for prt in self.parent_items_tables:
 
 		""" Calculate total yarn amount from raw materials for each parent item"""
 		total_yarn_amount = 0.0

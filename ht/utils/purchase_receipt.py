@@ -374,24 +374,39 @@ def make_rm_stock_entry(purchase_order, items, purchase_receipt):
     stock_entry.supplier = purchase_receipt_doc.stock_supplier_
     stock_entry.supplier_name = purchase_receipt_doc.stock_supplier_
     stock_entry.company = purchase_receipt_doc.company
-    stock_entry.from_warehouse = purchase_receipt_doc.supplier_warehouse
-    stock_entry.to_warehouse = purchase_receipt_doc.set_warehouse
+    # stock_entry.from_warehouse = purchase_receipt_doc.supplier_warehouse
+    # stock_entry.to_warehouse = purchase_receipt_doc.set_warehouse
+    
+    #last logic
+    # stock_entry.from_warehouse = purchase_receipt_doc.set_warehouse 
+    # stock_entry.to_warehouse = purchase_receipt_doc.custom_accepted_warehouse
+    # stock_entry.custom_source_warehouse = purchase_receipt_doc.supplier_warehouse
+
+
     stock_entry.dn_type = "Stock Yarn Dying"
     stock_entry.set_stock_entry_type()
 
     # Add consolidated items
     for item in items:
+        console("alternate",item.get("allow_alternate", [None])[0]).log()
         stock_entry.append("items", {
             "item_code": item["item_code"],
             "qty": item["supplied_qty"],
-            "s_warehouse": purchase_receipt_doc.supplier_warehouse,  # Access from Purchase Receipt doc
-            "t_warehouse": purchase_receipt_doc.set_warehouse,      # Access from Purchase Receipt doc
+            # "s_warehouse": purchase_receipt_doc.supplier_warehouse,  # Access from Purchase Receipt doc
+            # "t_warehouse": purchase_receipt_doc.set_warehouse,      # Access from Purchase Receipt doc
+            "s_warehouse": item.get("source_warehouse", [None])[0], # Access from Purchase Receipt doc
+            "t_warehouse": item.get("target_warehouse", [None])[0],     # Access from Purchase Receipt doc
+
             "stock_uom": item.get("stock_uom"),
             "subcontracted_item": item.get("parent_item_codes", [None])[0],
+            "allow_alternative_item": item.get("allow_alternate", [None])[0],
+            "po_detail": item.get("po_detail", [None])[0],
+            "po_number": item.get("po_name", [None])[0],
         })
 
     # Save and commit the Stock Entry
     stock_entry.insert()
+    # stock_entry.submit()  # Submit the Stock Entry
     frappe.db.commit()
     return stock_entry.as_dict()
 
@@ -611,16 +626,28 @@ def fetch_supplied_items(stock_supplier, po_type):
     if po_list:
         po_names = [po['name'] for po in po_list]
 
+        # result = frappe.db.sql("""
+        #     SELECT 
+        #        si.*, i.*,si.name
+        #     FROM 
+        #         `tabPurchase Order Item Supplied` si
+        #     JOIN 
+        #         `tabPurchase Order Item` i ON si.parent = i.parent
+        #     WHERE 
+        #         si.parent IN (%s) 
+        # """ % ','.join(['%s'] * len(po_names)), tuple(po_names), as_dict=True)
+        
         result = frappe.db.sql("""
             SELECT 
-               si.*, i.*
+               si.*,si.name
             FROM 
                 `tabPurchase Order Item Supplied` si
-            JOIN 
-                `tabPurchase Order Item` i ON si.parent = i.parent
             WHERE 
                 si.parent IN (%s) 
         """ % ','.join(['%s'] * len(po_names)), tuple(po_names), as_dict=True)
+
+        
+        
 
     return result
 
@@ -794,19 +821,19 @@ def fetch_bathrobe_items(job_no, purchase_type, supplier):
 
 
 
+
 @frappe.whitelist()
-def update_direct_to_db(docname, auto_stock_check,stock_supplier, grn_item,po_type):
+def update_direct_to_db(docname, auto_stock_check,stock_supplier,grn_item,po_type,source_warehouse,target_warehouse):
     # Update the qty of a specific item in a submitted document
     frappe.db.sql("""
         UPDATE `tabPurchase Receipt`
-        SET auto_stock_transfer=%s,stock_supplier_ = %s, grn_items=%s, po_types=%s, modified = NOW()
+        SET auto_stock_transfer=%s,stock_supplier_ = %s, grn_items=%s, po_types=%s,source_warehouse_=%s,target_warehouse=%s , modified = NOW()
         WHERE name = %s 
-    """, (auto_stock_check,stock_supplier,grn_item,po_type,docname))
+    """, (auto_stock_check,stock_supplier,grn_item,po_type,source_warehouse,target_warehouse,docname))
 
     frappe.db.commit()
 
     return {"message": "Record updated successfully"}
-
 
 
 

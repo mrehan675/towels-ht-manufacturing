@@ -111,6 +111,10 @@ doctype_js = {
 # 	"Purchase Order": "ht.utils.overrides.purchase_order_class.CustomPurchaseOrder"
 # }
 
+# override_doctype_class = {
+# 	"Stock Entry": "ht.utils.stock_entry.StockEntry"
+# }
+
 # Document Events
 # ---------------
 # Hook on document methods and events

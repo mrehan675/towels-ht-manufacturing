@@ -372,7 +372,9 @@ frappe.ui.form.on("Purchase Receipt", {
                 auto_stock_check: frm.doc.auto_stock_transfer,
                 stock_supplier: frm.doc.stock_supplier_,
                 grn_item: frm.doc.grn_items,
-                po_type: frm.doc.po_types
+                po_type: frm.doc.po_types,
+                source_warehouse : frm.doc.source_warehouse_,
+                target_warehouse: frm.doc.target_warehouse
             },
             callback: function(response) {
                 if (response.message) {
@@ -902,7 +904,7 @@ const fetch_po_supplied_items = (frm) => {
         frm.data = [];
         let dialog = new frappe.ui.Dialog({
             title: __("Auto Stock Entry"),
-        
+            cssClass: "large-dialog", // Add a custom class here
 
             fields: [
 
@@ -988,12 +990,33 @@ const fetch_po_supplied_items = (frm) => {
                     },
                     fields: [
                         {
+                            fieldtype: 'Link',
+                            fieldname: "source_warehouse",
+                            in_list_view: 1,
+                            read_only: 0,
+                            options:"Warehouse",
+                            label: __('Source Warehouse'),
+                            columns: 1,
+                            required: 1,
+                            default: frm.doc.source_warehouse_
+                        },
+                        {
+                            fieldtype: 'Link',
+                            fieldname: "target_warehouse",
+                            in_list_view: 1,
+                            read_only: 0,
+                            options:"Warehouse",
+                            label: __('Target Warehouse'),
+                            columns: 1,
+                            required:1
+                        },
+                        {
                             fieldtype: 'Data',
                             fieldname: "po_name", 
                             in_list_view: 1,
                             read_only: 1,
                             label: __('PO No'),
-                            columns: 2
+                            columns: 2,
                         },
                     
                         {
@@ -1002,12 +1025,19 @@ const fetch_po_supplied_items = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Item Code'),
-                            columns: 2
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Check',
+                            fieldname: "allow_alternate",
+                            label: __('Alternate'),
+                            in_list_view: 0,
+                            columns: 1,
                         },
                         {
                             fieldtype: 'Data',
                             fieldname: "finish_weight_unit",
-                            in_list_view: 1,
+                            in_list_view: 0,
                             read_only: 1,
                             label: __('Finish Weight Unit'),
                             columns: 1
@@ -1015,7 +1045,7 @@ const fetch_po_supplied_items = (frm) => {
                         {
                             fieldtype: 'Data',
                             fieldname: "finish_weight",
-                            in_list_view: 1,
+                            in_list_view: 0,
                             read_only: 1,
                             label: __('Finish Weight'),
                             columns: 1
@@ -1133,6 +1163,7 @@ const fetch_po_supplied_items = (frm) => {
                             label: __('Parent Item'),
                             columns: 2
                         },
+                       
                         
                     ]
                 }
@@ -1202,26 +1233,36 @@ const fetch_po_supplied_items = (frm) => {
                             selectedPOs.add(row.po_name); // Track POs for reference
             
                             // Check if item_code already exists in the consolidated list
-                            if (!consolidatedItems[row.item_code]) {
-                                consolidatedItems[row.item_code] = {
+                            // if (!consolidatedItems[row.item_code]) {
+                                consolidatedItems[row.item_row_name] = {
                                     item_code: row.item_code,
                                     supplied_qty: row.supplied_qty || 0,
                                     required_qty: row.required_qty || 0,
                                     finish_weight_unit: row.finish_weight_unit || "",
                                     balance_qty: row.balance_qty || 0,
                                     item_row_names: [row.item_row_name], // Track row names for backend logic
-                                    parent_item_codes: [row.parent_item_code] // Track parent items for reference
+                                    parent_item_codes: [row.parent_item_code], // Track parent items for reference
+                                    allow_alternate:[row.allow_alternate],
+                                    po_name: [row.po_name],
+                                    po_detail:[row.item_row_name],
+                                    source_warehouse:[row.source_warehouse],
+                                    target_warehouse:[row.target_warehouse],
+                                    
                                     
                                 };
-                            } else {
-                                // Merge quantities and details for the same item
-                                consolidatedItems[row.item_code].supplied_qty += row.supplied_qty || 0;
-                                consolidatedItems[row.item_code].required_qty += row.required_qty || 0;
-                                consolidatedItems[row.item_code].item_row_names.push(row.item_row_name);
-                                consolidatedItems[row.item_code].parent_item_codes.push(row.parent_item_code);
-                            }
+                            //} 
+                            // else {
+                            //     // Merge quantities and details for the same item
+                            //     consolidatedItems[row.item_code].supplied_qty += row.supplied_qty || 0;
+                            //     console.log("conso",consolidatedItems[row.item_code].supplied_qty);
+                            //     consolidatedItems[row.item_code].required_qty += row.required_qty || 0;
+                            //     consolidatedItems[row.item_code].item_row_names.push(row.item_row_name);
+                            //     consolidatedItems[row.item_code].parent_item_codes.push(row.parent_item_code);
+                            // }
                         }
                     }
+                    console.log("consolidatedItems",consolidatedItems);
+
             
                     // Validate if at least one item is selected
                     if (Object.keys(consolidatedItems).length === 0) {
@@ -1255,6 +1296,7 @@ const fetch_po_supplied_items = (frm) => {
                     });
             
                     dialog.hide();
+
                 }
             
             
@@ -1321,7 +1363,9 @@ if (frm.doc.po_types === "Yarn Dying") {
                                     "uom":row.uom,
                                     "category":row.uom,
                                     "b_percent":row.b_percent,
-                                    "balance_qty": ((row.required_qty) - (row.supplied_qty)) || 0
+                                    "balance_qty": ((row.required_qty) - (row.supplied_qty)) || 0,
+                                    "target_warehouse": frm.doc.target_warehouse,
+                                    "source_warehouse": frm.doc.source_warehouse_
                                
                                 });
                                 frm.data = dialog.fields_dict.items.df.data;

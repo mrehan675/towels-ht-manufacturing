@@ -106,7 +106,8 @@ def setting_items(sales_order_no,purchase_type):
                     parent.total_parent_qty_with_b_percent,
                     parent.qty_with_b_percent,
                     parent.order_placed_qty,
-                    parent.cut_length
+                    parent.cut_length,
+                    parent.secondary_qty_with_b_percent
 
                     
                     

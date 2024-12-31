@@ -142,7 +142,7 @@ frappe.ui.form.on('Budgeting', {
         });
         frm.refresh_field('rawmaterial_yarn_items');
         
-        console.log(raw_total_yarn)
+        // console.log(raw_total_yarn)
         //set the Parent Raw Yarn Total & Total Raw Amount from Raw child table
         // Convert raw_total_yarn to an integer
         raw_total_yarn = parseInt(raw_total_yarn);
@@ -207,7 +207,7 @@ frappe.ui.form.on('Budgeting', {
         }
 
         // Calculation of Total in this function
-        totals (frm,cdt,cdn);
+        totals(frm,cdt,cdn);
         cal_profit_loss_section(frm);
         calculate_date_difference(frm);
         // frm.set_value("total_qty",exp_total_qty);
@@ -294,9 +294,9 @@ frappe.ui.form.on('Yarn Items', {
         console.log("yarn item");
         var child = locals[cdt][cdn];
         var parentItem = child.parent_item;
-        console.log("parent_item");
-        console.log(parentItem);
-        console.log(itemQtyMap[parentItem]);
+        // console.log("parent_item");
+        // console.log(parentItem);
+        // console.log(itemQtyMap[parentItem]);
 
         // Set the quantity field in the rawmaterial_yarn_items table based on the selected parent item
         if (itemQtyMap[parentItem] !== undefined) {
@@ -490,6 +490,7 @@ function updateItemTotalAmount(frm) {
         }
     });
 
+    console.log("items_total_amount",items_total_amount);
     frm.set_value("total_amount", items_total_amount);
     frm.refresh_field("total_amount");
 }
@@ -621,13 +622,13 @@ var ext_amount = function(frm,cdt,cdn){
     var child = locals[cdt][cdn];
     if (child.est_qty && child.est_rate){
         console.log("first if");
-        console.log(export_sales);
+        // console.log(export_sales);
         frappe.model.set_value(cdt, cdn,"ext_amount", child.est_qty * child.est_rate );
 
     }
     else if (child.est_rate){
         console.log("second if");
-        console.log(export_sales);
+        // console.log(export_sales);
 
         frappe.model.set_value(cdt, cdn,"ext_amount", (child.est_rate/100)  * export_sales);
     }
@@ -759,13 +760,16 @@ frappe.ui.form.on('Budgeting Sales Review', {
 
 
 function cal_profit_loss_section(frm){
+    console.log("frm.doc.total_amount",frm.doc.total_amount);
 
     frm.set_value('export_sales', frm.doc.total_amount_pkr);
     frm.set_value('local_sale', frm.doc.local_sales);
     frm.set_value('rebate_percent', frm.doc.rebate_value);
-    frm.set_value('total_amounts', frm.doc.total_amount);
+    frm.set_value('total_amounts', frm.doc.total_amount_pkr + frm.doc.local_sales + frm.doc.rebate_value); 
+    // frm.set_value('total_amounts', '120'); 
+
     frm.set_value('total_costs', frm.doc.total_cost_amount);
-    frm.set_value('profit_loss', frm.doc.total_amount - frm.doc.total_cost_amount);
+    frm.set_value('profit_loss', frm.doc.total_amounts - frm.doc.total_cost_amount);
 }
 
 function calculate_date_difference(frm) {
