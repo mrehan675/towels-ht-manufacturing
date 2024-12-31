@@ -744,7 +744,7 @@ function createBudgetEntry(doc) {
         );
 
        // Parent Items Table
-            doc.parent_items_table.forEach(function(item){   //doctype_name  //child table   //list   
+            doc.parent_items_tables.forEach(function(item){   //doctype_name  //child table   //list   
                 var parentItemTable = frappe.model.add_child(budgetEntry, 'Sales Order Item', 'parent_items_table');  //Working on IT LAst Saturday for sending data from sales order to budget entry /////////////////////////////////
                 
                 parentItemTable.item_code = item.item_code
@@ -939,7 +939,7 @@ function fetch_parent_items(frm){
 
     console.log("chck parent");
     let matched_row = null;
-            frm.doc.parent_items_table.forEach(function(row) {
+            frm.doc.parent_items_tables.forEach(function(row) {
                 if (row.variant_of !== frm.doc.parent_item) {
                     matched_row = row;
                     console.log("matched_row",matched_row);
@@ -978,7 +978,7 @@ function fetch_parent_items(frm){
 
                 // frappe.msgprint(__('Parent form fields updated from the child table.'));
             } else {
-                frappe.msgprint(__('No matching rows found in parent_item_table.'));
+                frappe.msgprint(__('No matching rows found in parent_item_tables.'));
             }
 }
 

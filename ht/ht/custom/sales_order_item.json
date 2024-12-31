@@ -3573,7 +3573,7 @@
    "in_preview": 0,
    "in_standard_filter": 0,
    "insert_after": "secondary_qty",
-   "label": "B% Qty",
+   "label": "B Qty",
    "length": 0,
    "mandatory_depends_on": null,
    "modified": "2024-01-02 12:06:54.008575",
