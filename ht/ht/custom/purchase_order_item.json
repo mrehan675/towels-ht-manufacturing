@@ -5057,7 +5057,7 @@
    "description": null,
    "docstatus": 0,
    "dt": "Purchase Order Item",
-   "fetch_from": "",
+   "fetch_from": "item_code.color",
    "fetch_if_empty": 0,
    "fieldname": "dye_colour",
    "fieldtype": "Data",
