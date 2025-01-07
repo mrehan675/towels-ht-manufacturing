@@ -142,9 +142,12 @@ def calculate_item_values(self):
 							
 							else:
 								pass
-							
+						
 						elif item.purchase_type == 'Dying Service' or item.purchase_type == 'Dying Purchase Receipt':
-							item.amount = flt((item.qty) * (flt(item.finish_weight_unit)/1000) * (2.2046) * (item.rate),item.precision("amount")) 
+							if item.purchase_type == 'Dying Purchase Receipt':
+								item.amount = flt((item.qty) * (flt(item.finish_weight_unit)/1000) * (2.2046) * (item.rate),item.precision("amount")) 
+							else:
+								item.amount = flt((item.qty) * (flt(item.finish_weight)/1000) * (2.2046) * (item.rate),item.precision("amount")) 
 
 						#PO Amount=Qty in Pcs*(Finish Weight/1000)*2.2046*Rate
 						

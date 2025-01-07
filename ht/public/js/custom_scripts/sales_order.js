@@ -1019,7 +1019,7 @@ const fetch_sales_order=(frm)=>{
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Item Name'),
-                            columns: 2
+                            columns: 3
                         },
                         {
                             fieldtype: 'Link',
@@ -1028,7 +1028,7 @@ const fetch_sales_order=(frm)=>{
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Item Group'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Link',
@@ -1069,13 +1069,13 @@ const fetch_sales_order=(frm)=>{
                             fieldname: "delivery_date",
                             label: __('Delivery Date'),
                             in_list_view: 1,
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldname : 'embroidery_rate',
                             fieldtype : 'Float',
                             label: __('Embroidery Rate'),
-                            in_list_view : 1,
+                            in_list_view : 0,
                             columns: 1,
 
                         },
@@ -1083,14 +1083,14 @@ const fetch_sales_order=(frm)=>{
                             fieldname : 'sh_rate',
                             fieldtype : 'Float',
                             label: __('SH Rate'),
-                            in_list_view : 1,
+                            in_list_view : 0,
                             columns: 1,
                         }  ,
                         {
                             fieldname : 'dye_waste_percentage',
                             fieldtype : 'Float',
                             label: __('Dye Waste Percentage'),
-                            in_list_view : 1,
+                            in_list_view : 0,
                             columns: 1,
                         }  ,
                         {
@@ -1105,28 +1105,28 @@ const fetch_sales_order=(frm)=>{
                             fieldtype: 'Link',
                             options: 'Link',
                             label: __('Variant of'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'net_weight',
                             fieldtype: 'Float',
                             label: __('Net Weight'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'greight_weight',
                             fieldtype: 'Float',
                             label: __('Greigh Weight'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'weight_difference',
                             fieldtype: 'Float',
                             label: __('Weight Difference'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
@@ -1134,7 +1134,7 @@ const fetch_sales_order=(frm)=>{
                             fieldtype: 'Select',
                             options: ["LBS/DZ", "OZ/PC", "GM/MTR", "KG/YD"],
                             label: __('Weight Measuring Unit'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                          
@@ -1142,14 +1142,14 @@ const fetch_sales_order=(frm)=>{
                             fieldname : 'stitching_rate',
                             fieldtype : 'Float',
                             label: __('Stitching Rate'),
-                            in_list_view : 1,
+                            in_list_view : 0,
                             columns: 1
                         },
                         {
                             label: __('OH Rate'),
                             fieldname : 'oh_rate',
                             fieldtype: 'Float',
-                            in_list_view : 1,
+                            in_list_view : 0,
                             columns: 1
                         },
                         {
@@ -1170,7 +1170,7 @@ const fetch_sales_order=(frm)=>{
                             fieldname: 'total_secondary_qty',
                             fieldtype: 'Float',
                             label: __('Total Secondary Qty'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
@@ -1178,14 +1178,14 @@ const fetch_sales_order=(frm)=>{
                             fieldtype: 'Link',
                             options: 'UOM',
                             label: __('Total Secondary Qty UOM'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'total_parent_qty',
                             fieldtype: 'Float',
                             label: __('Total Parent Qty'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
@@ -1193,28 +1193,28 @@ const fetch_sales_order=(frm)=>{
                             fieldtype: 'Link',
                             options: "UOM",
                             label: __('Total Parent Qty UOM'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'b_percent',
                             fieldtype: 'Percent',
                             label: __('B %'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             label: __('Printing Rate'),
                             fieldname: 'printing_rate',
                             fieldtype: 'Float',
-                            in_list_view : 1,
+                            in_list_view : 0,
                             columns: 1
                         },
                         {
                             label: __('Dye Rate'),
                             fieldname : 'dye_rate',
                             fieldtype: 'Float',
-                            in_list_view : 1,
+                            in_list_view : 0,
                             columns: 1
                         },
                         {
@@ -1235,49 +1235,49 @@ const fetch_sales_order=(frm)=>{
                             fieldname: 'total_secondary_qty_with_b_percent',
                             fieldtype: 'Float',
                             label: __('Total Secondary Qty with B %'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'total_parent_qty_with_b_percent',
                             fieldtype: 'Float',
                             label: __('Total Secondary Qty'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'secondary_to_standard_qty_ratio',
                             fieldtype: 'Float',
                             label: __('Secondary to Standard Qty Ratio'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'loom_wastage',
                             fieldtype: 'Percent',
                             label: __('Loom Wastage'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'greigh_kgs',
                             fieldtype: 'Float',
                             label: __('Greigh Kgs'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'greigh_lbs',
                             fieldtype: 'Float',
                             label: __('Greigh LBS'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {
                             fieldname: 'final_lbs',
                             fieldtype: 'Float',
                             label: __('Final LBS'),
-                            in_list_view: 1,
+                            in_list_view: 0,
                             columns: 1,
                         },
                         {

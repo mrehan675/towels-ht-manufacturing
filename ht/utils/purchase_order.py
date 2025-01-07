@@ -50,6 +50,9 @@ def fetch_variant_into_raw(sales_order_no,purchase_type):
 
 @frappe.whitelist()
 def setting_items(sales_order_no,purchase_type):
+    if not sales_order_no or not purchase_type:
+        frappe.throw("Both 'sales_order_no' and 'purchase_type' are required parameters.")
+
     console("enter in setting").log()
     data = []
     query = []
@@ -77,10 +80,10 @@ def setting_items(sales_order_no,purchase_type):
                     
 
                     
-                    from  `tabSales Order Item` as parent
+                    from  `tabParent Sales Order Item` as parent
                     
                     where
-                        parent.parent =%s and parentfield = 'parent_items_table' 
+                        parent.parent =%s and parentfield = 'parent_items_tables' 
                     
     
             """,(sales_order_no,), as_dict=1)
@@ -89,6 +92,7 @@ def setting_items(sales_order_no,purchase_type):
     if purchase_type == 'Dying Service' or purchase_type == 'Stitching Service' or purchase_type == 'Stitching Bathrobe  Service':
         
         console("back dye method").log()
+        console("New check").log()
         query = frappe.db.sql(
             """
                select 
@@ -293,10 +297,10 @@ def fetch_parent_items_of_so(sales_order_no,purchase_type):
                     parent.greigh_weight
                     
                     
-                    from  `tabSales Order Item` as parent
+                    from  `tabParent Sales Order Item` as parent
                     
                     where
-                    parent.parent = %s and parent.parentfield = 'parent_items_table'                
+                    parent.parent = %s and parent.parentfield = 'parent_items_tables'                
     
             """,(sales_order_no,), as_dict=1)
         

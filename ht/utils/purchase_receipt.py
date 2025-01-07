@@ -406,7 +406,7 @@ def make_rm_stock_entry(purchase_order, items, purchase_receipt):
 
     # Save and commit the Stock Entry
     stock_entry.insert()
-    # stock_entry.submit()  # Submit the Stock Entry
+    stock_entry.submit()  # Submit the Stock Entry
     frappe.db.commit()
     return stock_entry.as_dict()
 

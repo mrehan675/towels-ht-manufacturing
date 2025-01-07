@@ -110,6 +110,10 @@ doctype_js = {
 # override_doctype_class = {
 # 	"Purchase Order": "ht.utils.overrides.purchase_order_class.CustomPurchaseOrder"
 # }
+override_doctype_class = {
+    "Stock Entry": "ht.utils.stock_entry.CustomStockEntry"
+}
+
 
 # override_doctype_class = {
 # 	"Stock Entry": "ht.utils.stock_entry.StockEntry"

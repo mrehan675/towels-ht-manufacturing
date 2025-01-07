@@ -301,6 +301,19 @@ frappe.ui.form.on("Purchase Receipt", {
 
         }
     },
+    //button check
+    set_warehouse_auto: function(frm){
+
+        if(frm.doc.set_warehouse_auto == 1){
+            frm.set_value("set_warehouse","Work In Progress - HT_SB");
+            
+            if(frm.doc.auto_stock_transfer == 1){
+
+                frm.set_value("source_warehouse_","Work In Progress - HT_SB");
+
+            }
+        }
+    },
     //button
     grn_items: function(frm){
         if(frm.doc.grn_items){
@@ -414,6 +427,12 @@ frappe.ui.form.on("Purchase Receipt", {
     },
     auto_stock_transfer:function(frm){
         console.log("enter in auto stock ");
+        if (frm.doc.auto_stock_transfer == 1) {
+            
+            if(frm.doc.set_warehouse_auto == 1){
+                frm.set_value("source_warehouse_","Work In Progress - HT_SB");
+            }
+        }
         // if (frm.doc.auto_stock_transfer) {
         //     console.log("enter pss iff");
         //     // Clear the purchase_order field

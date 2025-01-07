@@ -877,6 +877,7 @@ frappe.ui.form.on('Purchase Order', {
         if (frm.doc.purchase_type == 'Yarn Dying'){
             //fetch so yarn dye raw material
             fetch_so_yarn_dyeing(frm)
+            console.log("yoo");
 
         }
         else if(frm.doc.purchase_type == 'Dying Service'){
@@ -2184,6 +2185,8 @@ const stitching_service = (frm) => {
                     for (let row of r.message) {
                         frappe.db.get_doc('Item', row.item_code).then(itm_doc => {
                             setTimeout(() => {
+// else if(frm.doc.purchase_type == 'Stitching Service' || frm.doc.purchase_type == 'Stitching Bathrobe  Service'){
+                                if (row.weight_measuring_unit == "GM/PC" && frm.doc.purchase_type == 'Stitching Service'){
                                 dialog.fields_dict.items.df.data.push({
                                     "parent_item_name": row.variant_of,
                                     "item_code": row.item_code,
@@ -2205,6 +2208,30 @@ const stitching_service = (frm) => {
 
 
                                 });
+                            }
+                            if (row.weight_measuring_unit == "GM/MTR" && frm.doc.purchase_type == 'Stitching Bathrobe  Service'){
+                                dialog.fields_dict.items.df.data.push({
+                                    "parent_item_name": row.variant_of,
+                                    "item_code": row.item_code,
+                                    "item_name": row.item_name,
+                                    "description": row.description,
+                                    "qty": (row.qty * (1 + row.b_percent / 100)), // in lbs
+                                    "qty_in_pcs": row.qty, // in pcs
+                                    "qty_in_kgs": ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000)), // in kgs
+                                    "uom": 'lbs',
+                                    "finish_weight": row.net_weight,
+                                    "cut_length": row.cut_length,
+                                    "weight_measuring_unit": row.weight_measuring_unit,
+                                    "b_percent": row.b_percent,
+                                    "orginal_item": row.orginal_item,
+                                    "so_row_name": row.name,
+                                    "stitch_sales_order_qty" : row.qty_with_b_percent,
+                                    "stitch_order_place_qty" : row.order_placed_qty || 0,
+                                    "stitch_balance_qty"   : ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0
+
+
+                                });
+                            }
                                 frm.data = dialog.fields_dict.items.df.data;
                                 dialog.fields_dict.items.grid.refresh();
                             }, 500);
@@ -2332,6 +2359,7 @@ const fetch_so_yarn_dyeing = (frm) => {
                     let po_check_itemslist = [];
                     for (let row of values.items) {
                         if (row.check == 1) {
+                            console.log("first");
                             let child = frm.add_child('items');
                             let cdt = child.doctype;
                             let cdn = child.name;
@@ -2358,6 +2386,8 @@ const fetch_so_yarn_dyeing = (frm) => {
                             if (r.message) {
                                 for (let row of r.message) {
                                     if (po_check_itemslist.includes(row.raw_mat_item)) {
+                                        console.log("second");
+
                                         let child = frm.add_child('supplied_items');
                                         let cdt = child.doctype;
                                         let cdn = child.name;
@@ -2390,6 +2420,8 @@ const fetch_so_yarn_dyeing = (frm) => {
             callback: function (r) {
                 if (r.message) {
                     for (let row of r.message) {
+                        console.log("third");
+
                         frappe.db.get_doc('Item', row.raw_mat_item)
                             .then(itm_doc => {
                                 setTimeout(() => {
