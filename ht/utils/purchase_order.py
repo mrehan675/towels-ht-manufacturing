@@ -1,7 +1,7 @@
 import frappe
 import json
 from console import console
-
+from frappe import _
 
 #Weaving and Yarn PO 
 #Sales Order (Main Item Table)
@@ -44,7 +44,30 @@ def fetch_variant_into_raw(sales_order_no,purchase_type):
         if purchase_type == "Stitching Service" or purchase_type == 'Stitching Bathrobe  Service':
             console("stiti").log()
             console(row).log()
-            data.append(row)
+            dy_item_code = row.get("item_code").replace("-ST", "-DY")
+
+            variant = row.get("variant_of")
+            item_code = row.get("item_code")
+            item = frappe.db.sql(""" Select * from `tabItem` where variant_of=%s and item_code=%s and item_group='Finished Goods' """,(variant,dy_item_code),as_dict=1)
+            
+            console("item",item).log()
+            
+            if item:
+            
+               
+              
+                row["item_code"] = item[0]["item_code"]
+                row["item_name"] = item[0]["item_name"]
+                row["description"] = item[0]["description"]
+                data.append(row)
+            
+            else:
+                console("elsssss").log()
+
+               
+                frappe.throw(_("Item Code not found. Please ensure the Dying item exists in Item Master: <b>{0}</b>").format(dy_item_code))
+
+                
 
     return data
 
@@ -171,10 +194,36 @@ def setting_items(sales_order_no,purchase_type):
         
         if purchase_type == "Dying Service" :
             console("back for dyig service").log()
+            # Replace '-ST' with '-DY' in the item_code
+            dy_item_code = row.get("item_code").replace("-ST", "-DY")
+
+            variant = row.get("variant_of")
+            item_code = row.get("item_code")
+            item = frappe.db.sql(""" Select * from `tabItem` where variant_of=%s and item_code=%s and item_group='Finished Goods' """,(variant,dy_item_code),as_dict=1)
+            
+            console("item",item).log()
+            
+            if item:
+                console("enter").log()
+              
+                row["item_code"] = item[0]["item_code"]
+                row["item_name"] = item[0]["item_name"]
+                row["description"] = item[0]["description"]
+            
+            else:
+                console("elsssss").log()
+
+               
+                frappe.throw(_("Item Code not found. Please ensure the Dying item exists in Item Master: <b>{0}</b>").format(dy_item_code))
+
+
+                
+
             # console("row",row).log()
             item_code = row.get("item_code")
             paren_item = row.get("variant_of")
-            # console("item",item_code).log()
+            console("item nn",item_code).log()
+
 
             #Working for Order placed Qty
             query = """
@@ -198,10 +247,10 @@ def setting_items(sales_order_no,purchase_type):
                 poi.item_code;
             """
             
-            result = frappe.db.sql(query, {"purchase_type": purchase_type, "sales_order": sales_order_no,"item_code":item_code,"parent_item":paren_item}, as_dict=True)
+            result = frappe.db.sql(query, {"purchase_type": purchase_type, "sales_order": sales_order_no,"item_code":item[0]["item_code"],"parent_item":paren_item}, as_dict=True)
             console("REsult",result).log()
 
-            if result and result[0].get("item_code") == row.get("item_code"):
+            if result and result[0].get("item_code") == item[0]["item_code"]:
                 
                 row["order_placed_qty"] = result[0]["order_placed_total_qty"]
             
@@ -211,61 +260,127 @@ def setting_items(sales_order_no,purchase_type):
                
             
             data.append(row)
-
+            
         if purchase_type == "Stitching Service" or purchase_type == 'Stitching Bathrobe  Service':
             console("Stitiching service if").log()
-            
-            
-            name = frappe.db.get_value("Item", {'variant_of': row.variant_of , 'item_colour_variant': row.item_code},['name'])
-            console("name").log()
-            console(name).log()
+            dye_raw_material = row.get("item_code").replace("-ST", "-DY")
+            row["orginal_item"] = dye_raw_material
 
-            if name:
-                console("if name").log()
-                variant_item = frappe.db.get_value("Item Variant Attribute",{'parent': name, 'variant_of': row.variant_of, 'attribute_value': 'Stitching'}, ['parent'])
-                console(variant_item).log()
-                if variant_item:
-                    console("if varinat item").log()
-                    orginal_item = row.item_code
-                    row["orginal_item"] = orginal_item
-                    row["item_code"] = variant_item
-                    row["item_name"] = variant_item
-                    console("rpow").log()
-                    console(row).log()
-                    console("variant_item",variant_item).log()
+            
+            
+            
+            # name = frappe.db.get_value("Item", {'variant_of': row.variant_of , 'item_colour_variant': row.item_code},['name'])
+            # console("name").log()
+            # console(name).log()
+
+            # if name:
+            #     console("if name").log()
+            #     variant_item = frappe.db.get_value("Item Variant Attribute",{'parent': name, 'variant_of': row.variant_of, 'attribute_value': 'Stitching'}, ['parent'])
+            #     console(variant_item).log()
+            #     if variant_item:
+            #         console("if varinat item").log()
+            #         orginal_item = row.item_code
+            #         row["orginal_item"] = orginal_item
+            #         row["item_code"] = variant_item
+            #         row["item_name"] = variant_item
+            #         console("rpow").log()
+            #         console(row).log()
+            #         console("variant_item",variant_item).log()
                     
-                    #Working for Order placed Qty
-                    query = """
-                    SELECT 
-                        poi.item_code,
-                        SUM(poi.qty) AS order_placed_total_qty
-                    FROM 
-                        `tabPurchase Order Item` AS poi
-                    JOIN 
-                        `tabPurchase Order` AS po
-                    ON 
-                        poi.parent = po.name
-                    WHERE 
-                        po.purchase_type = %(purchase_type)s
-                        AND po.sales_order = %(sales_order)s
-                        AND po.docstatus = 1
-                        AND poi.item_code = item_code
+                    
+            #Working for Order placed Qty##################################
+            query = """
+            SELECT 
+                poi.item_code,
+                SUM(poi.qty) AS order_placed_total_qty
+            FROM 
+                `tabPurchase Order Item` AS poi
+            JOIN 
+                `tabPurchase Order` AS po
+            ON 
+                poi.parent = po.name
+            WHERE 
+                po.purchase_type = %(purchase_type)s
+                AND po.sales_order = %(sales_order)s
+                AND po.docstatus = 1
+                AND poi.item_code = item_code
+                
+            GROUP BY 
+                poi.item_code;
+            """
+            
+            result = frappe.db.sql(query, {"purchase_type": purchase_type, "sales_order": sales_order_no,"item_code":row.item_code}, as_dict=True)
+            console("REsult",result).log()
+
+            if result and result[0].get("item_code") == row.item_code:
+                
+                row["order_placed_qty"] = result[0]["order_placed_total_qty"]
+            else:
+                row["order_placed_qty"] = 0
+
+            
+            data.append(row)
+
+
+        # if purchase_type == "Stitching Service" or purchase_type == 'Stitching Bathrobe  Service':
+        #     console("Stitiching service if").log()
+        #     console("row.item_code",row.item_code).log()
+        #     row.item_code = row.get("item_code").replace("-ST", "")
+
+            
+        #     name = frappe.db.get_value("Item", {'variant_of': row.variant_of , 'item_colour_variant': row.item_code},['name'])
+        #     console("name").log()
+        #     console(name).log()
+            
+            
+
+        #     if name:
+        #         console("if name").log()
+        #         variant_item = frappe.db.get_value("Item Variant Attribute",{'parent': name, 'variant_of': row.variant_of, 'attribute_value': 'Stitching'}, ['parent'])
+        #         console(variant_item).log()
+        #         if variant_item:
+        #             console("if varinat item").log()
+        #             orginal_item = row.item_code
+        #             console("orginal_item",orginal_item).log()
+        #             row["orginal_item"] = orginal_item
+        #             row["item_code"] = variant_item
+        #             row["item_name"] = variant_item
+        #             console("rpow").log()
+        #             console(row).log()
+        #             console("variant_item",variant_item).log()
+                    
+        #             #Working for Order placed Qty
+        #             query = """
+        #             SELECT 
+        #                 poi.item_code,
+        #                 SUM(poi.qty) AS order_placed_total_qty
+        #             FROM 
+        #                 `tabPurchase Order Item` AS poi
+        #             JOIN 
+        #                 `tabPurchase Order` AS po
+        #             ON 
+        #                 poi.parent = po.name
+        #             WHERE 
+        #                 po.purchase_type = %(purchase_type)s
+        #                 AND po.sales_order = %(sales_order)s
+        #                 AND po.docstatus = 1
+        #                 AND poi.item_code = item_code
                        
-                    GROUP BY 
-                        poi.item_code;
-                    """
+        #             GROUP BY 
+        #                 poi.item_code;
+        #             """
                     
-                    result = frappe.db.sql(query, {"purchase_type": purchase_type, "sales_order": sales_order_no,"item_code":variant_item}, as_dict=True)
-                    console("REsult",result).log()
+        #             result = frappe.db.sql(query, {"purchase_type": purchase_type, "sales_order": sales_order_no,"item_code":variant_item}, as_dict=True)
+        #             console("REsult",result).log()
 
-                    if result and result[0].get("item_code") == variant_item:
+        #             if result and result[0].get("item_code") == variant_item:
                         
-                        row["order_placed_qty"] = result[0]["order_placed_total_qty"]
-                    else:
-                        row["order_placed_qty"] = 0
+        #                 row["order_placed_qty"] = result[0]["order_placed_total_qty"]
+        #             else:
+        #                 row["order_placed_qty"] = 0
 
                     
-                    data.append(row)
+        #             data.append(row)
         
 
             

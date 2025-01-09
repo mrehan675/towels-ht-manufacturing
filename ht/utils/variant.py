@@ -37,6 +37,7 @@ def setting_variant(parent_item):
                                 filters={
                                     'variant_of': parent_item,
                                     'item_group':"Finished Goods",
+                                    'item_name': ['like', '%-ST%']  
                                     
                                 },
                                 fields=['*'],

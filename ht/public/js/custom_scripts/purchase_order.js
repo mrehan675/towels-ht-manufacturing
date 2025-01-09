@@ -2136,6 +2136,8 @@ const stitching_service = (frm) => {
                         }
                     }
 
+                    console.log("po_check_itemslist",po_check_itemslist);
+
                     frappe.call({
                         method: "ht.utils.purchase_order.fetch_variant_into_raw",
                         args: {
