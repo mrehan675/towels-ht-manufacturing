@@ -406,7 +406,7 @@ def make_rm_stock_entry(purchase_order, items, purchase_receipt):
 
     # Save and commit the Stock Entry
     stock_entry.insert()
-    stock_entry.submit()  # Submit the Stock Entry
+    # stock_entry.submit()  # Submit the Stock Entry
     frappe.db.commit()
     return stock_entry.as_dict()
 
@@ -618,6 +618,7 @@ def fetch_supplied_items(stock_supplier, po_type):
         SELECT name
         FROM `tabPurchase Order`
         WHERE supplier = %s AND purchase_type = %s
+        ORDER BY name
     """, (stock_supplier, po_type), as_dict=True)
 
     console("PO List",po_list).log()
