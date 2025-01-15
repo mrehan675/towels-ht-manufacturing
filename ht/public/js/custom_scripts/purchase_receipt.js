@@ -1574,6 +1574,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                 if (values.items) {
                     let po_check_itemslist = [];
                     for (let row of values.items) {
+                        // if(row.po_name == 'PUR-ORD-2025-00073')
                         if (row.check == 1) {
                             let child = frm.add_child('items');
                             let cdt = child.doctype;
@@ -1591,10 +1592,10 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                             frappe.model.set_value(cdt, cdn, 'brand', row.brand);
                             frappe.model.set_value(cdt, cdn, 'qty', row.qty);
                             
-                            setTimeout(function() {
+                            // setTimeout(function() {
                                 frappe.model.set_value(cdt, cdn, 'rate', row.rate);
                                 frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
-                            }, 1000); // Delay of 1000 milliseconds
+                            // }, 2000); // Delay of 1000 milliseconds
 
 
                             frappe.model.set_value(cdt, cdn, 'color', row.color);
@@ -1606,6 +1607,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
 
 
                         }
+                        
                     }
 
 
@@ -1630,6 +1632,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                         console.log("ROw",row);
                         // frappe.db.get_doc('Item', row.raw_mat_item)
                             // .then(itm_doc => {
+                                // if (row.purchase_order == 'PUR-ORD-2025-00073'){
                                 setTimeout(() => {
                                     dialog.fields_dict.items.df.data.push({
                                         "po_name":row.purchase_order,
@@ -1652,7 +1655,8 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                                     dialog.fields_dict.items.grid.refresh();
                                 }, 500);
                             // });
-                    }
+                    // }
+                }
                     dialog.show();
                     dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
                 }
@@ -1818,10 +1822,10 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
 
                             frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
                             frappe.model.set_value(cdt, cdn, 'qty', row.balance_qty);
-                            setTimeout(function() {
+                            // setTimeout(function() {
                                 frappe.model.set_value(cdt, cdn, 'rate', row.rate);
                                 frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
-                            }, 1500); // Delay of 1000 milliseconds
+                            // }, 1500); // Delay of 1000 milliseconds
                             
 
                             frappe.model.set_value(cdt, cdn, 'greigh_weigh_unit', row.greigh_weigh_unit);

@@ -765,11 +765,11 @@ function cal_profit_loss_section(frm){
     frm.set_value('export_sales', frm.doc.total_amount_pkr);
     frm.set_value('local_sale', frm.doc.local_sales);
     frm.set_value('rebate_percent', frm.doc.rebate_value);
-    frm.set_value('total_amounts', frm.doc.total_amount_pkr + frm.doc.local_sales + frm.doc.rebate_value); 
+    // frm.set_value('total_amounts', frm.doc.total_amount_pkr + frm.doc.local_sales + frm.doc.rebate_value); 
     // frm.set_value('total_amounts', '120'); 
 
-    frm.set_value('total_costs', frm.doc.total_cost_amount);
-    frm.set_value('profit_loss', frm.doc.total_amounts - frm.doc.total_cost_amount);
+    // frm.set_value('total_costs', frm.doc.total_cost_amount);
+    // frm.set_value('profit_loss', frm.doc.total_amounts - frm.doc.total_cost_amount);
 }
 
 function calculate_date_difference(frm) {
