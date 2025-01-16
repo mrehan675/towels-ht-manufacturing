@@ -4,7 +4,279 @@ import frappe
 from frappe import _, msgprint
 from frappe.utils import flt
 
+from erpnext.stock import get_item_details
 
+from erpnext.stock.get_item_details import process_args,get_price_list_currency_and_exchange_rate,apply_price_list_on_item,process_string_args,validate_item_details,get_basic_details,get_item_tax_template,get_item_tax_map,get_party_item_code,set_valuation_rate,update_party_blanket_order,get_price_list_rate,get_pos_profile_item_details,get_bin_details,get_pricing_rule_for_item,update_stock,get_default_bom,get_gross_profit
+from six import iteritems, string_types
+from frappe.utils import add_days, add_months, cint, cstr, flt, getdate
+
+
+
+
+# @frappe.whitelist()
+# def custom_apply_price_list(args, as_doc=False):
+#     console("enter in cusotm apply price").log()
+# 	"""Apply pricelist on a document-like dict object and return as
+# 	{'parent': dict, 'children': list}
+
+# 	:param args: See below
+# 	:param as_doc: Updates value in the passed dict
+
+# 	        args = {
+# 	                "doctype": "",
+# 	                "name": "",
+# 	                "items": [{"doctype": "", "name": "", "item_code": "", "brand": "", "item_group": ""}, ...],
+# 	                "conversion_rate": 1.0,
+# 	                "selling_price_list": None,
+# 	                "price_list_currency": None,
+# 	                "price_list_uom_dependant": None,
+# 	                "plc_conversion_rate": 1.0,
+# 	                "doctype": "",
+# 	                "name": "",
+# 	                "supplier": None,
+# 	                "transaction_date": None,
+# 	                "conversion_rate": 1.0,
+# 	                "buying_price_list": None,
+# 	                "ignore_pricing_rule": 0/1
+# 	        }
+# 	"""
+    
+# 	args = process_args(args)
+
+# 	parent = get_price_list_currency_and_exchange_rate(args)
+# 	args.update(parent)
+
+# 	children = []
+    
+
+# 	if "items" in args:
+# 		item_list = args.get("items")
+# 		args.update(parent)
+        
+
+# 		for item in item_list:
+# 			args_copy = frappe._dict(args.copy())
+# 			args_copy.update(item)
+            
+# 			item_details = apply_price_list_on_item(args_copy)
+			
+#             #custom work
+#    			# Remove the rate field if it exists
+# 			if "rate" in item_details:
+                    
+# 				console("apply newww").log()
+# 				frappe.logger().info(f"Removing rate from item details: {item_details}")
+# 				item_details.pop("rate")
+# 			if "price_list_rate" in item_details:
+# 				console("apply price_list_rate").log()
+# 				frappe.logger().info(f"Removing rate from item details: {item_details}")
+# 				item_details.pop("price_list_rate")
+    
+# 			children.append(item_details)
+
+# 	if as_doc:
+# 		args.price_list_currency = (parent.price_list_currency,)
+# 		args.plc_conversion_rate = parent.plc_conversion_rate
+# 		if args.get("items"):
+# 			for i, item in enumerate(args.get("items")):
+# 				for fieldname in children[i]:
+# 					# if the field exists in the original doc
+# 					# update the value
+# 					if fieldname in item and fieldname not in ("name", "doctype"):
+# 						item[fieldname] = children[i][fieldname]
+# 		return args
+# 	else:
+# 		return {"parent": parent, "children": children}
+
+@frappe.whitelist()
+def custom_apply_price_list(args, as_doc=False):
+    console("enter in custom apply price").log()
+    """Apply pricelist on a document-like dict object and return as
+    {'parent': dict, 'children': list}
+
+    :param args: See below
+    :param as_doc: Updates value in the passed dict
+
+            args = {
+                    "doctype": "",
+                    "name": "",
+                    "items": [{"doctype": "", "name": "", "item_code": "", "brand": "", "item_group": ""}, ...],
+                    "conversion_rate": 1.0,
+                    "selling_price_list": None,
+                    "price_list_currency": None,
+                    "price_list_uom_dependant": None,
+                    "plc_conversion_rate": 1.0,
+                    "doctype": "",
+                    "name": "",
+                    "supplier": None,
+                    "transaction_date": None,
+                    "conversion_rate": 1.0,
+                    "buying_price_list": None,
+                    "ignore_pricing_rule": 0/1
+            }
+    """
+
+    args = process_args(args)
+
+    parent = get_price_list_currency_and_exchange_rate(args)
+    args.update(parent)
+
+    children = []
+
+    if "items" in args:
+        item_list = args.get("items")
+        args.update(parent)
+
+        for item in item_list:
+            args_copy = frappe._dict(args.copy())
+            args_copy.update(item)
+
+            item_details = apply_price_list_on_item(args_copy)
+
+            # Custom work: Remove the rate field if it exists
+            if args.get("doctype") == "Purchase Receipt":
+                if "rate" in item_details:
+                    console("apply newww").log()
+                    frappe.logger().info(f"Removing rate from item details: {item_details}")
+                    item_details.pop("rate")
+                if "price_list_rate" in item_details:
+                    console("apply price_list_rate").log()
+                    frappe.logger().info(f"Removing price_list_rate from item details: {item_details}")
+                    item_details.pop("price_list_rate")
+
+            children.append(item_details)
+
+    if as_doc:
+        args.price_list_currency = (parent.price_list_currency,)
+        args.plc_conversion_rate = parent.plc_conversion_rate
+        if args.get("items"):
+            for i, item in enumerate(args.get("items")):
+                for fieldname in children[i]:
+                    # If the field exists in the original doc, update the value
+                    if fieldname in item and fieldname not in ("name", "doctype"):
+                        item[fieldname] = children[i][fieldname]
+        return args
+    else:
+        return {"parent": parent, "children": children}
+
+# get_item_details.apply_price_list = apply_price_list
+
+def custom_get_item_details(args, doc=None, for_validate=False, overwrite_warehouse=True):
+    """
+    args = {
+            "item_code": "",
+            "warehouse": None,
+            "customer": "",
+            "conversion_rate": 1.0,
+            "selling_price_list": None,
+            "price_list_currency": None,
+            "plc_conversion_rate": 1.0,
+            "doctype": "",
+            "name": "",
+            "supplier": None,
+            "transaction_date": None,
+            "conversion_rate": 1.0,
+            "buying_price_list": None,
+            "is_subcontracted": "Yes" / "No",
+            "ignore_pricing_rule": 0/1
+            "project": ""
+            "set_warehouse": ""
+    }
+    """
+
+    args = process_args(args)
+    for_validate = process_string_args(for_validate)
+    overwrite_warehouse = process_string_args(overwrite_warehouse)
+    item = frappe.get_cached_doc("Item", args.item_code)
+    validate_item_details(args, item)
+
+    out = get_basic_details(args, item, overwrite_warehouse)
+
+    if isinstance(doc, string_types):
+        doc = json.loads(doc)
+
+    if doc and doc.get("doctype") == "Purchase Invoice":
+        args["bill_date"] = doc.get("bill_date")
+
+    if doc:
+        args["posting_date"] = doc.get("posting_date")
+        args["transaction_date"] = doc.get("transaction_date")
+
+    get_item_tax_template(args, item, out)
+    out["item_tax_rate"] = get_item_tax_map(
+        args.company,
+        args.get("item_tax_template")
+        if out.get("item_tax_template") is None
+        else out.get("item_tax_template"),
+        as_json=True,
+    )
+
+    get_party_item_code(args, item, out)
+
+    set_valuation_rate(out, args)
+
+    update_party_blanket_order(args, out)
+
+    # Custom work
+    # out.update(get_price_list_rate(args, item))
+    if args.customer and cint(args.is_pos):
+        out.update(get_pos_profile_item_details(args.company, args, update_data=True))
+
+    if (
+        args.get("doctype") == "Material Request"
+        and args.get("material_request_type") == "Material Transfer"
+    ):
+        out.update(get_bin_details(args.item_code, args.get("from_warehouse")))
+
+    elif out.get("warehouse"):
+        if doc and doc.get("doctype") == "Purchase Order":
+            # calculate company_total_stock only for po
+            bin_details = get_bin_details(args.item_code, out.warehouse, args.company)
+        else:
+            bin_details = get_bin_details(args.item_code, out.warehouse)
+
+        out.update(bin_details)
+
+    # update args with out, if key or value not exists
+    for key, value in iteritems(out):
+        if args.get(key) is None:
+            args[key] = value
+
+    data = get_pricing_rule_for_item(args, out.price_list_rate, doc, for_validate=for_validate)
+
+    out.update(data)
+
+    update_stock(args, out)
+
+    if args.transaction_date and item.lead_time_days:
+        out.schedule_date = out.lead_time_date = add_days(args.transaction_date, item.lead_time_days)
+
+    if args.get("is_subcontracted") == "Yes":
+        out.bom = args.get("bom") or get_default_bom(args.item_code)
+
+    get_gross_profit(out)
+    if args.doctype == "Material Request":
+        out.rate = args.rate or out.price_list_rate
+        out.amount = flt(args.qty) * flt(out.rate)
+
+    # Custom work for Purchase Receipt
+    if args.get("doctype") == "Purchase Receipt":
+        if "price_list_rate" in out:
+            console("price_list_rate", out).log()
+            out.pop("price_list_rate")
+
+        # Ensure custom rate logic
+        if "rate" in args:
+            console("rate").log()
+            out.pop("rate")
+        if "last_purchase_rate" in args:
+            console("last_purchase_rate").log()
+            out.pop("last_purchase_rate")
+
+    return out
+
+
+get_item_details.get_item_details = custom_get_item_details
 
 
 @frappe.whitelist()

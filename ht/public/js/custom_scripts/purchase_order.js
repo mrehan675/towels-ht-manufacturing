@@ -699,11 +699,29 @@ frappe.ui.form.on("Purchase Order", {
     },
     validate: function(frm){
         update_qty_label(frm);
+        calculate_date_difference(frm);
+
 
     }
     
 });
 
+function calculate_date_difference(frm) {
+    // Ensure both date fields are filled
+    if (frm.doc.transaction_date && frm.doc.schedule_date) {
+        // Parse dates
+        const startDate = frappe.datetime.str_to_obj(frm.doc.transaction_date);
+        const endDate = frappe.datetime.str_to_obj(frm.doc.schedule_date);
+
+        // Calculate difference in days
+        const differenceInDays = frappe.datetime.get_day_diff(endDate, startDate);
+
+        // Set the difference in the target field
+        frm.set_value('delivery_days', differenceInDays);
+    } else {
+        frm.set_value('delivery_days', 0); // Set to 0 if dates are missing
+    }
+}
 
 frappe.ui.form.on('Purchase Order', {
 
