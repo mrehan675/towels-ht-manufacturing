@@ -14,6 +14,17 @@ app_license = "MIT"
 # Includes in <head>
 # ------------------
 
+
+fixtures = [
+    {
+        "dt": "Custom Field",
+        "filters": [
+            ["dt", "=", "Sales Order"]
+        ]
+    }
+]
+
+
 # include js, css files in header of desk.html
 # app_include_css = "/assets/ht/css/ht.css"
 # app_include_js = "/assets/ht/js/ht.js"
