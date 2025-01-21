@@ -34,7 +34,9 @@ def fetch_variant_into_raw(sales_order_no,purchase_type):
                     from  `tabSales Order Item` as parent
                     
                     where
-                    parent.parent = %s and parent.parentfield = 'items'                
+                    parent.parent = %s and parent.parentfield = 'items'
+                    
+                    order by   parent.variant_of             
     
             """,(sales_order_no,), as_dict=1)
         
@@ -108,6 +110,7 @@ def setting_items(sales_order_no,purchase_type):
                     where
                         parent.parent =%s and parentfield = 'parent_items_tables' 
                     
+                    order by parent.variant_of
     
             """,(sales_order_no,), as_dict=1)
     
@@ -142,9 +145,12 @@ def setting_items(sales_order_no,purchase_type):
                     from  `tabSales Order Item` as parent
                     
                     where
-                    parent.parent = %s and parent.parentfield = 'items'                
+                    parent.parent = %s and parent.parentfield = 'items'  
+                    
+                    order by parent.variant_of              
     
             """,(sales_order_no,), as_dict=1)
+        console("QQ",query).log()
 
     
     
@@ -385,7 +391,7 @@ def setting_items(sales_order_no,purchase_type):
 
             
             
-
+    console("DATA",data).log()
     return data
 
 
@@ -415,7 +421,9 @@ def fetch_parent_items_of_so(sales_order_no,purchase_type):
                     from  `tabParent Sales Order Item` as parent
                     
                     where
-                    parent.parent = %s and parent.parentfield = 'parent_items_tables'                
+                    parent.parent = %s and parent.parentfield = 'parent_items_tables' 
+                    
+                    order by   parent.variant_of             
     
             """,(sales_order_no,), as_dict=1)
         
@@ -463,6 +471,8 @@ def fetch_raw_material_items(sales_order_no,purchase_type):
  
                 where
                   raw.parent =%s 
+                
+                order by raw.parent_item
                 
    
         """,(sales_order_no,),as_dict=1)

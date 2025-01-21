@@ -1601,7 +1601,7 @@ const fetch_sales_order=(frm)=>{
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Parent Item'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Data',
@@ -1658,7 +1658,7 @@ const fetch_sales_order=(frm)=>{
                             in_list_view: 1,
                             read_only: 1,
                             label: __('T Parent Pcs Qty'),
-                            columns: 2
+                            columns: 1.5
                         },
                         {
                             fieldtype: 'Data',
@@ -1666,7 +1666,7 @@ const fetch_sales_order=(frm)=>{
                             in_list_view: 1,
                             read_only: 1,
                             label: __('T Parent Mtr Qty'),
-                            columns: 2,
+                            columns: 1.5,
                             onchange: function(e) {
                                console.log(this.value);
                             }
@@ -1678,7 +1678,7 @@ const fetch_sales_order=(frm)=>{
                             in_list_view: 1,
                             read_only: 0,
                             label: __('Select'),
-                            columns: 1
+                            columns: 0.5
                         },
                         {
                             fieldtype: 'Float',
@@ -1839,6 +1839,12 @@ const fetch_sales_order=(frm)=>{
                                         "so_row_name": row.name
 
                                     });
+
+                                    dialog.fields_dict.items.df.data.sort((a, b) => {
+                                        if (a.parent_item_name < b.parent_item_name) return -1;
+                                        if (a.parent_item_name > b.parent_item_name) return 1;
+                                        return 0;
+                                        });
                                     frm.data = dialog.fields_dict.items.df.data;
                                     dialog.fields_dict.items.grid.refresh();
                                 }, 500);
@@ -2064,6 +2070,12 @@ const fetch_so_dying_service = (frm) => {
                                 
                                 // Push the dynamically constructed data
                                 dialog.fields_dict.items.df.data.push(dialog_data);
+                                // Sort the data by `parent_item_name`
+                                dialog.fields_dict.items.df.data.sort((a, b) => {
+                                    if (a.parent_item_name < b.parent_item_name) return -1;
+                                    if (a.parent_item_name > b.parent_item_name) return 1;
+                                    return 0;
+                                });
 
                                 frm.data = dialog.fields_dict.items.df.data;
                                 dialog.fields_dict.items.grid.refresh();
@@ -2456,7 +2468,15 @@ const fetch_so_yarn_dyeing = (frm) => {
                                         "yarn_order_place_qty": row.order_placed_qty || 0,
                                         "yarn_balance_qty": ((row.consumption_lbs) - (row.order_placed_qty)) || 0
                                     });
+
+                                    // Sort the data by `parent_item_name`
+                                    dialog.fields_dict.items.df.data.sort((a, b) => {
+                                        if (a.parent_item_name < b.parent_item_name) return -1;
+                                        if (a.parent_item_name > b.parent_item_name) return 1;
+                                        return 0;
+                                    });
                                     frm.data = dialog.fields_dict.items.df.data;
+                                    
                                     dialog.fields_dict.items.grid.refresh();
                                 }, 500);
                             });

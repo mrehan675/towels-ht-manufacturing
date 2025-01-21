@@ -88,7 +88,7 @@ from frappe.utils import add_days, add_months, cint, cstr, flt, getdate
 # 	else:
 # 		return {"parent": parent, "children": children}
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def custom_apply_price_list(args, as_doc=False):
     console("enter in custom apply price").log()
     """Apply pricelist on a document-like dict object and return as
@@ -276,7 +276,7 @@ def custom_get_item_details(args, doc=None, for_validate=False, overwrite_wareho
     return out
 
 
-get_item_details.get_item_details = custom_get_item_details
+# get_item_details.get_item_details = custom_get_item_details
 
 
 @frappe.whitelist()
@@ -877,50 +877,88 @@ def fetch_weave_items(job_no, purchase_type, supplier):
 
 #     return result
 
+## original method
+# @frappe.whitelist()
+# def fetch_supplied_items(stock_supplier, po_type):
+	
+#     console("Supplier",stock_supplier).log()
+#     console("Po type",po_type).log()
+   
+#     result = []
+
+#     po_list = frappe.db.sql("""
+#         SELECT name
+#         FROM `tabPurchase Order`
+#         WHERE supplier = %s AND purchase_type = %s
+#         ORDER BY name
+#     """, (stock_supplier, po_type), as_dict=True)
+
+#     console("PO List",po_list).log()
+
+
+#     if po_list:
+#         po_names = [po['name'] for po in po_list]
+
+#         # result = frappe.db.sql("""
+#         #     SELECT 
+#         #        si.*, i.*,si.name
+#         #     FROM 
+#         #         `tabPurchase Order Item Supplied` si
+#         #     JOIN 
+#         #         `tabPurchase Order Item` i ON si.parent = i.parent
+#         #     WHERE 
+#         #         si.parent IN (%s) 
+#         # """ % ','.join(['%s'] * len(po_names)), tuple(po_names), as_dict=True)
+        
+#         result = frappe.db.sql("""
+#             SELECT 
+#                si.*,si.name
+#             FROM 
+#                 `tabPurchase Order Item Supplied` si
+#             WHERE 
+#                 si.parent IN (%s) 
+#         """ % ','.join(['%s'] * len(po_names)), tuple(po_names), as_dict=True)
+  
+#     return result
 
 @frappe.whitelist()
 def fetch_supplied_items(stock_supplier, po_type):
-	
-    console("Supplier",stock_supplier).log()
-    console("Po type",po_type).log()
+    console("Supplier", stock_supplier).log()
+    console("Po type", po_type).log()
    
     result = []
 
+    # Fetch relevant Purchase Orders
     po_list = frappe.db.sql("""
-        SELECT name
+        SELECT name, job_number
         FROM `tabPurchase Order`
         WHERE supplier = %s AND purchase_type = %s
         ORDER BY name
     """, (stock_supplier, po_type), as_dict=True)
 
-    console("PO List",po_list).log()
-
+    console("PO List", po_list).log()
 
     if po_list:
+        # Extract PO names and map job_no for each PO
         po_names = [po['name'] for po in po_list]
+        po_job_map = {po['name']: po['job_number'] for po in po_list}
 
-        # result = frappe.db.sql("""
-        #     SELECT 
-        #        si.*, i.*,si.name
-        #     FROM 
-        #         `tabPurchase Order Item Supplied` si
-        #     JOIN 
-        #         `tabPurchase Order Item` i ON si.parent = i.parent
-        #     WHERE 
-        #         si.parent IN (%s) 
-        # """ % ','.join(['%s'] * len(po_names)), tuple(po_names), as_dict=True)
-        
+        # Fetch supplied items and include job_no in the result
         result = frappe.db.sql("""
             SELECT 
-               si.*,si.name
+                si.*, si.name, po.job_number
             FROM 
                 `tabPurchase Order Item Supplied` si
+            JOIN 
+                `tabPurchase Order` po ON si.parent = po.name
             WHERE 
-                si.parent IN (%s) 
+                si.parent IN (%s)
         """ % ','.join(['%s'] * len(po_names)), tuple(po_names), as_dict=True)
 
-        
-        
+        console("Result New",result).log()
+        # # Attach job_no to each result item (if needed for further processing)
+        # for row in result:
+        #     row['job_no'] = po_job_map.get(row['parent'], None)
 
     return result
 

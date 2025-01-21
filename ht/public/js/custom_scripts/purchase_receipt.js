@@ -253,6 +253,25 @@ function calculate_lbs_stitching(frm,child){
 }
 
 frappe.ui.form.on("Purchase Receipt", {
+    stock_supplier_: function (frm) {
+        if (frm.doc.stock_supplier_) {
+            console.log("enter in stock warehouse");
+            // Check if a warehouse with the same name as the supplier exists
+            frappe.db.get_value("Warehouse", {"warehouse_name": frm.doc.stock_supplier_}, "name", (r) => {
+                if (r && r.name) {
+                    frm.set_value("target_warehouse", r.name); // Set the target_warehouse field
+                }
+                else {
+                    frappe.msgprint({
+                        title: __("Warehouse Not Found"),
+                        message: __("No warehouse found with the name: {0}", [frm.doc.stock_supplier_]),
+                        indicator: "orange",
+                    });
+                    frm.set_value("target_warehouse", null); // Clear the target_warehouse field
+                }
+            });
+        }
+    },
 
     // refresh:function(frm){
 
@@ -283,6 +302,7 @@ frappe.ui.form.on("Purchase Receipt", {
         
 
     // },
+   
     refresh: function(frm){
         if (!frm.is_new()) {
         fetch_grn_items(frm);
@@ -301,6 +321,7 @@ frappe.ui.form.on("Purchase Receipt", {
 
         }
     },
+    
     //button check
     set_warehouse_auto: function(frm){
 
@@ -525,6 +546,8 @@ frappe.ui.form.on("Purchase Receipt", {
     },
     receipt_type:function(frm){
         console.log("enter in receipt event");
+        frm.fields_dict['items'].grid.remove_all();
+
         set_purchase_receipt_type(frm);
         console.log("ddd");
         set_link_query (frm);
@@ -550,7 +573,9 @@ frappe.ui.form.on("Purchase Receipt", {
         if (frm.doc.receipt_type == 'Yarn Purchase Receipt' || frm.doc.receipt_type == 'Weaving Purchase Receipt' || frm.doc.receipt_type == 'Dying Purchase Receipt' || frm.doc.receipt_type=='Stitching Purchase Receipt'){
             set_purchase_receipt_type(frm);
         }
-       
+       else{
+        set_purchase_receipt_type(frm);
+       }
         
 
     },
@@ -1011,7 +1036,7 @@ const fetch_po_supplied_items = (frm) => {
                         {
                             fieldtype: 'Link',
                             fieldname: "source_warehouse",
-                            in_list_view: 1,
+                            in_list_view: 0,
                             read_only: 0,
                             options:"Warehouse",
                             label: __('Source Warehouse'),
@@ -1022,7 +1047,7 @@ const fetch_po_supplied_items = (frm) => {
                         {
                             fieldtype: 'Link',
                             fieldname: "target_warehouse",
-                            in_list_view: 1,
+                            in_list_view: 0,
                             read_only: 0,
                             options:"Warehouse",
                             label: __('Target Warehouse'),
@@ -1037,6 +1062,14 @@ const fetch_po_supplied_items = (frm) => {
                             label: __('PO No'),
                             columns: 2,
                         },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "job_no", 
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Job No'),
+                            columns: 1,
+                        },
                     
                         {
                             fieldtype: 'Data',
@@ -1044,7 +1077,7 @@ const fetch_po_supplied_items = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Item Code'),
-                            columns: 1
+                            columns: 2
                         },
                         {
                             fieldtype: 'Check',
@@ -1249,6 +1282,24 @@ const fetch_po_supplied_items = (frm) => {
                     // Consolidate selected items
                     for (let row of values.items) {
                         if (row.check === 1) {
+                            if (row.required_qty == row.balance_qty){
+                                if (row.required_qty < row.supplied_qty){
+                                    frappe.throw(
+                                        `Remaining quantity for item <b>${row.item_code}</b> of PO <b>${row.po_name}</b> is greater. Please adjust the supplied quantity.`
+                                    );
+                                }
+                                
+                            }
+                            if (row.required_qty > row.balance_qty){
+                                // let actual_qty = row.supplied_qty + row.balance_qty;
+                                if (row.balance_qty < row.supplied_qty){
+                                    frappe.throw(
+                                        `Remaining quantity for item <b>${row.item_code}</b> of PO <b>${row.po_name}</b> is greater. Please adjust the supplied quantity.`
+                                    );
+                                }
+                                
+                            }
+                             
                             selectedPOs.add(row.po_name); // Track POs for reference
             
                             // Check if item_code already exists in the consolidated list
@@ -1367,6 +1418,7 @@ if (frm.doc.po_types === "Yarn Dying") {
                                 dialog.fields_dict.items.df.data.push({
                                     "po_name":row.parent,
                                     "item_row_name": row.name,
+                                    "job_no":row.job_number,
                                     // "po_date": row.po_date,                                       
                                     "parent_item_code":row.main_item_code,
                                     "item_code": row.rm_item_code,
