@@ -427,6 +427,8 @@ def fetch_parent_items_of_so(sales_order_no,purchase_type):
     
             """,(sales_order_no,), as_dict=1)
         
+        console("Query one",query).log()
+        
     
     for row in query:
 

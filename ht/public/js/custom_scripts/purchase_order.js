@@ -1957,6 +1957,8 @@ const fetch_so_dying_service = (frm) => {
                                         let cdt = child.doctype;
                                         let cdn = child.name;
                                         let req_qty = ((row.greigh_weight) * (row.total_parent_qty_with_b_percent / 1000) * 2.2046);
+
+                                        console.log("((row.greigh_weight) * (row.total_parent_qty_with_b_percent / 1000) * 2.2046)");
                                         
                                         frappe.model.set_value(cdt, cdn, "main_item_code", row.variant_of);
                                         frappe.model.set_value(cdt, cdn, "rm_item_code", row.item_code);
