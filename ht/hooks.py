@@ -19,7 +19,13 @@ fixtures = [
     {"dt": "Order Type"},
     {"dt": "Register"},
     {"dt": "Category"},
-    {"dt":"Budgeting"}
+    {
+        "dt": "Budgeting",
+        "filters": [
+            ["creation", ">=", "2024-11-25 15:25:52.044115"]
+            
+        ]
+    }
 ]
 
 
