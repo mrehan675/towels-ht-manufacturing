@@ -200,17 +200,6 @@
  {
   "docstatus": 0,
   "doctype": "Order Type",
-  "modified": "2025-01-23 16:21:34.398481",
-  "name": "tesst",
-  "order_type": "tesst",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
-  "type": "Purchase Order"
- },
- {
-  "docstatus": 0,
-  "doctype": "Order Type",
   "modified": "2024-04-24 15:21:00.816813",
   "name": "Dying Service",
   "order_type": "Dying Service",
