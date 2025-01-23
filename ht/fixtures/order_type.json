@@ -90,17 +90,6 @@
  {
   "docstatus": 0,
   "doctype": "Order Type",
-  "modified": "2024-04-24 15:27:29.082978",
-  "name": "Weaving Purchase Receipt",
-  "order_type": "Weaving Purchase Receipt",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
-  "type": "Purchase Receipt"
- },
- {
-  "docstatus": 0,
-  "doctype": "Order Type",
   "modified": "2024-04-24 15:28:02.765037",
   "name": "Dying Purchase Receipt",
   "order_type": "Dying Purchase Receipt",
@@ -218,6 +207,17 @@
   "parentfield": null,
   "parenttype": null,
   "type": "Purchase Order"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Order Type",
+  "modified": "2024-04-24 15:27:29.082978",
+  "name": "Weaving Purchase Receipt",
+  "order_type": "Weaving Purchase Receipt",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "type": "Purchase Receipt"
  },
  {
   "docstatus": 0,

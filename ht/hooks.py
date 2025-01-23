@@ -16,7 +16,12 @@ app_license = "MIT"
 
 
 fixtures = [
-    {"dt": "Order Type"},
+    {"dt": "Order Type",
+     "filters": [
+            ["type", "!=", ""]
+            
+        ]
+    },
     {"dt": "Register"},
     {"dt": "Category"},
     {
