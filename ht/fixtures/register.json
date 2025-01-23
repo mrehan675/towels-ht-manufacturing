@@ -2,18 +2,6 @@
  {
   "docstatus": 0,
   "doctype": "Register",
-  "modified": "2024-05-07 18:50:28.013874",
-  "name": "Dying",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
-  "receipt_type": "Yarn Purchase Receipt",
-  "register_name": "Dying",
-  "register_type": "to"
- },
- {
-  "docstatus": 0,
-  "doctype": "Register",
   "modified": "2024-05-07 19:35:54.929526",
   "name": "Oh Towels",
   "parent": null,
@@ -33,18 +21,6 @@
   "parenttype": null,
   "receipt_type": "Weaving Purchase Receipt",
   "register_name": "Greigh Stock",
-  "register_type": "to"
- },
- {
-  "docstatus": 0,
-  "doctype": "Register",
-  "modified": "2024-05-13 18:26:13.668046",
-  "name": "Dying Towel",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
-  "receipt_type": "Weaving Purchase Receipt",
-  "register_name": "Dying Towel",
   "register_type": "to"
  },
  {
