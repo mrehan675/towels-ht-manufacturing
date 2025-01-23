@@ -16,12 +16,10 @@ app_license = "MIT"
 
 
 fixtures = [
-    {
-        "dt": "Custom Field",
-        "filters": [
-            ["dt", "=", "Sales Order"]
-        ]
-    }
+    {"dt": "Order Type"},
+    {"dt": "Register"},
+    {"dt": "Category"},
+    {"dt":"Budgeting"}
 ]
 
 
