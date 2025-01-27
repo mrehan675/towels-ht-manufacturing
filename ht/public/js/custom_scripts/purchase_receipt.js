@@ -253,6 +253,20 @@ function calculate_lbs_stitching(frm,child){
 }
 
 frappe.ui.form.on("Purchase Receipt", {
+    items_on_form_rendered: function(frm) {
+        console.log("look");
+        frm.doc.items.forEach(function(item) {
+            
+            if (frm.doc.receipt_type != item.purchase_type){
+                //Set Value in child table 
+                frappe.model.set_value(item.doctype,item.name,'purchase_type', frm.doc.receipt_type);
+                frm.refresh_field('items');
+                frm.refresh();
+            }
+            
+    
+        });
+    },
     stock_supplier_: function (frm) {
         if (frm.doc.stock_supplier_) {
             console.log("enter in stock warehouse");
