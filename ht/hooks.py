@@ -195,9 +195,9 @@ doc_events = {
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"erpnext.stock.get_item_details.apply_price_list": "ht.utils.purchase_receipt.custom_apply_price_list"
-# }
+override_whitelisted_methods = {
+	"erpnext.stock.get_item_details.apply_price_list": "ht.utils.purchase_receipt.custom_apply_price_list"
+}
 # override_whitelisted_methods = {
 # 	"erpnext.stock.doctype.purchase_receipt.purchase_receipt.make_purchase_invoice": "ht.event.get_events"
 # }

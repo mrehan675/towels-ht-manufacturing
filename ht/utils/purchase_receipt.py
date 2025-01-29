@@ -88,7 +88,7 @@ from frappe.utils import add_days, add_months, cint, cstr, flt, getdate
 # 	else:
 # 		return {"parent": parent, "children": children}
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def custom_apply_price_list(args, as_doc=False):
     console("enter in custom apply price").log()
     """Apply pricelist on a document-like dict object and return as
@@ -160,8 +160,9 @@ def custom_apply_price_list(args, as_doc=False):
         return {"parent": parent, "children": children}
 
 # get_item_details.apply_price_list = apply_price_list
-
+@frappe.whitelist()
 def custom_get_item_details(args, doc=None, for_validate=False, overwrite_warehouse=True):
+    console("enter in custom get item details").log()
     """
     args = {
             "item_code": "",
@@ -261,6 +262,7 @@ def custom_get_item_details(args, doc=None, for_validate=False, overwrite_wareho
 
     # Custom work for Purchase Receipt
     if args.get("doctype") == "Purchase Receipt":
+        console("Doctype Check",args.get("doctype")).log()
         if "price_list_rate" in out:
             console("price_list_rate", out).log()
             out.pop("price_list_rate")
@@ -276,7 +278,7 @@ def custom_get_item_details(args, doc=None, for_validate=False, overwrite_wareho
     return out
 
 
-# get_item_details.get_item_details = custom_get_item_details
+get_item_details.get_item_details = custom_get_item_details
 
 
 @frappe.whitelist()
