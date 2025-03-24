@@ -1,35 +1,28 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:order_type",
- "creation": "2024-02-13 14:51:40.858310",
+ "autoname": "field:fancy",
+ "creation": "2025-01-30 17:23:55.867540",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "order_type",
-  "type"
+  "fancy"
  ],
  "fields": [
   {
-   "fieldname": "order_type",
+   "fieldname": "fancy",
    "fieldtype": "Data",
-   "label": "Order Type",
+   "label": "Fancy Name",
    "unique": 1
-  },
-  {
-   "fieldname": "type",
-   "fieldtype": "Select",
-   "label": "Type",
-   "options": "Purchase Order\nPurchase Receipt\nStock Entry\nPurchase Invoice"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-27 17:51:34.753988",
+ "modified": "2025-01-30 17:23:55.867540",
  "modified_by": "Administrator",
  "module": "HT",
- "name": "Order Type",
+ "name": "Fancy",
  "owner": "Administrator",
  "permissions": [
   {

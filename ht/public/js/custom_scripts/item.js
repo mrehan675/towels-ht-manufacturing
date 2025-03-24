@@ -1,5 +1,34 @@
 // frappe.ui.form.off("Item", "onload");
 
+frappe.ui.form.on('Item', {
+    onload: function (frm) {
+        // Check if this is a new document
+        if (frm.is_new() && !frm.doc.is_sub_contracted_item) {
+            // Show the prompt only once when the form is new
+            frappe.prompt(
+                [
+                    {
+                        label: 'Is this a Subcontracted Item?',
+                        fieldname: 'is_subcontracted',
+                        fieldtype: 'Check'
+                    }
+                ],
+                function (values) {
+                    // Set the 'is_sub_contracted_item' field based on the user's selection
+                    if (values.is_subcontracted == 1) {
+                        frm.set_value('is_sub_contracted_item', 1);
+                    } else {
+                        frm.set_value('is_sub_contracted_item', 0);
+                    }
+                },
+                __('Subcontracted Item Confirmation'),  // Dialog title
+                __('Confirm')  // Button text
+            );
+        }
+    }
+});
+
+
 frappe.provide("erpnext.item");
 
 

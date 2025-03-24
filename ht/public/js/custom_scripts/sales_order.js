@@ -4,7 +4,17 @@ frappe.ui.form.on('Sales Order', {
             frm.remove_custom_button('Update Items');
             
         }, 10);
+
+        if (!frm.is_new()) {
+            fetch_parent_items(frm);
+        }
     },
+    customer(frm) {
+        if (frm.doc.customer){
+            frm.fields_dict['items'].grid.remove_all();
+        }
+    }
+    
 });
 
 //Update work Sale Order
@@ -106,13 +116,7 @@ frappe.ui.form.on("Sales Order", {
             frappe.model.set_value(cdt,cdn,"sh_rate",parent_data.sh_rate)
             frappe.model.set_value(cdt,cdn,"dye_waste_percentage",parent_data.dye_waste_percentage)
             frappe.model.set_value(cdt,cdn,"b_kgs_rate",parent_data.b_kgs_rate)
-
-         
-            
-           
-            
-
-                                        
+                                       
             // Based ON Weight Measuring Unit Field Calc
 
 
@@ -440,162 +444,6 @@ function griegh_kgs_cal(frm){
     }
 
 }
-
-
-
-
-
-// frappe.ui.form.on('Sales Order Raw Material', {
-//     parent_item: function(frm, cdt, cdn) {
-//         console.log("Sales Order Item");
-//         var child = locals[cdt][cdn];
-//         var parentItem = child.parent_item;
-//         console.log("parent_item");
-//         console.log(parentItem);
-//         console.log(itemQtyMap[parentItem]);
-       
-
-//         // Set the quantity field in the rawmaterial_yarn_items table based on the selected parent item
-//         if (itemQtyMap[parentItem] !== undefined) {
-//             console.log("wn");
-//             frappe.model.set_value(cdt, cdn, "qty", itemQtyMap[parentItem]);
-//         }
-//     }
-// });
-
-
-///////////END Button showing work
-
-
-////////// Functionality on button Click//////////////
-// function createbudgetentry(doc) {
-//     var budgetEntry = frappe.model.get_new_doc('Budgeting');
-//     budgetEntryItem.customer = doc.customer;
-//     budgetEntryItem.sales_order = doc.name;
-//     budgetEntryItem.shipment_date = doc.delivery_date;
-//     budgetEntryItem.currency = doc.currency;
-//     budgetEntryItem.order_receiving_date = doc.trnsaction_date;
-    
-//     budgetEntryItem.us_dollar = doc.total;
-//     budgetEntryItem.exchange_rate = doc.conversion_rate;
-//     budgetEntryItem.total_amount_pkr = doc.base_total;
-
-    
-
-//     budgetEntryItem.budgeting_item = []; // Initialize the items array
-//     budgetEntryItem.rawmaterial_yarn_items = [];
-    
-//     try {
-//         doc.items.forEach(function(item) {
-//             var budgetEntryItem = frappe.model.add_child(budgetEntry, 'Budgeting Item', 'budgeting_item');
-
-//             budgetEntryItem.item_code = item.item_code;
-//             budgetEntryItem.delivery_date = item.delivery_date;
-//             budgetEntryItem.item_name = item.item_name;
-//             budgetEntryItem.description = item.description;
-//             budgetEntryItem.qty = item.qty;
-//             budgetEntryItem.uom = item.uom;
-//             budgetEntryItem.stock_uom = item.stock_uom;
-//             budgetEntryItem.conversion_factor = item.conversion_factor;
-//             budgetEntryItem.picked_qty = item.picked_qty;
-//             budgetEntryItem.stock_qty = item.stock_qty;
-//             budgetEntryItem.price_list_rate = item.price_list_rate;
-//             budgetEntryItem.base_price_list_rate = item.base_price_list_rate;
-//             budgetEntryItem.margin_type = item.margin_type;
-//             budgetEntryItem.discount_percentage = item.discount_percentage;
-//             budgetEntryItem.discount_amount = item.discount_amount;
-//             budgetEntryItem.rate = item.rate;
-//             budgetEntryItem.base_rate = item.base_rate;
-//             budgetEntryItem.amount = item.amount;
-//             budgetEntryItem.base_amount = item.base_amount;
-//             budgetEntryItem.warehouse = item.warehouse;
-            
-//             budgetEntryItem.b = item.b;
-//             budgetEntryItem.net_weight = item.weight_per_unit;
-            
-            
-            
-            
-//         });
-//         //RAW MATERIAL TABLE WORK
-//             doc.sales_order_raw_material.forEach(function(raw_item) {
-//             var budgetEntryarnItem = frappe.model.add_child(budgetEntry, 'Sales Order Raw Material', 'rawmaterial_yarn_items');
-
-//             budgetEntryarnItem.parent_item = raw_item.parent_item;
-//             budgetEntryarnItem.qty = raw_item.qty;
-//             budgetEntryarnItem.net_lbs = raw_item.net_lbs;
-//             budgetEntryarnItem.loom_wastage = raw_item.loom_wastage;
-//             budgetEntryarnItem.total_yarn_required = raw_item.total_yarn_required;
-//             budgetEntryarnItem.raw_mat_item = raw_item.raw_mat_item;
-//             budgetEntryarnItem.raw_mat_item_name = raw_item.raw_mat_item_name;
-//             budgetEntryarnItem.consumption_ = raw_item.consumption_;
-//             budgetEntryarnItem.consumption_lbs = raw_item.consumption_lbs;
-//             budgetEntryarnItem.rate_per_lbs  = raw_item.rate_per_lbs;
-//             budgetEntryarnItem.raw_material_amount = raw_item.raw_material_amount;
-//             budgetEntryarnItem.net_weight = raw_item.net_weight;
-           
-            
-//         }
-//         );
-        
-//         frappe.route_options = { 'doc': budgetEntry };
-//         frappe.set_route('Form', 'Budgeting', 'new-budgeting-1');
-        
-       
-        
-        
-//     } catch (error) {
-//         console.error('Error creating Budget entry:', error);
-//     }
-// }
-
-/////////////////////////////////////////////////FETCH VARIANT BUTTON WORK///////////////////
-
-// frappe.ui.form.on('Sales Order', {
-//     refresh: function(frm) {
-//         frm.add_custom_button(__('Fetch Variants'), function() {
-//             var dialog = new frappe.ui.Dialog({
-//                 title: __('Select Variants'),
-//                 fields: [
-//                     {
-//                         fieldtype: 'Link',
-//                         fieldname: 'parent_item',
-//                         label: 'Parent Item',
-//                         options: 'Item',
-//                         reqd: 1
-//                     },
-//                     {
-//                         fieldtype: 'HTML',
-//                         fieldname: 'variants_html'
-//                     }
-//                 ],
-//                 primary_action_label: __('Add Variants'),
-//                 primary_action: function() {
-//                     // Handle the selection of variants and add them to the item table
-//                     var selectedVariants = [];
-//                     // Use dialog.get_value('field_name') to get the selected parent item
-//                     // Fetch variants based on the selected parent item and populate selectedVariants array
-
-//                     // Example: Fetch and populate selectedVariants based on the selected parent item
-//                     var parentItem = dialog.get_value('parent_item');
-//                     // Implement fetching logic to populate selectedVariants
-
-//                     // Add selected variants to the Sales Order item table
-//                     selectedVariants.forEach(function(variant) {
-//                         var row = frappe.model.add_child(frm.doc, 'items');
-//                         row.item_code = variant.item_code;
-//                         row.qty = 1; // You can set the quantity as per your requirements
-//                     });
-
-//                     dialog.hide();
-//                     frm.refresh_field('items');
-//                 }
-//             });
-
-//             dialog.show();
-//         });
-//     }
-// });
 
 
 /////////////////////////////////////////////16-11-23//Thursday///////////////////////////////////////////////////////
@@ -928,24 +776,52 @@ frappe.ui.form.on('Sales Order', {
     clear_fields(frm){
         clear_parent_fields(frm);
     },
-    parent_rows(frm){
-        fetch_parent_items(frm);
+    fetch_parent_item_rows(frm){
+        set_parent_items(frm);
     }
     
 });
 
+function fetch_parent_items(frm) {
+    console.log("Fetching parent items...");
 
-function fetch_parent_items(frm){
+    // Extract `variant_of` values from `parent_items_table`
+    let item_codes = frm.doc.parent_items_tables.map(row => row.variant_of).filter(Boolean);
+
+    if (item_codes.length === 0) {
+        frappe.msgprint(__('No parent items found.'));
+        return;
+    }
+
+    // Set options for the select field (`fetch_parent_item_rows`)
+    frm.set_df_property('fetch_parent_item_rows', 'options', [''].concat(item_codes).join('\n'));
+
+    // Refresh the field to apply changes
+    frm.refresh_field('fetch_parent_item_rows');
+}
+
+
+function set_parent_items(frm){
 
     console.log("chck parent");
-    let matched_row = null;
-            frm.doc.parent_items_tables.forEach(function(row) {
-                if (row.variant_of !== frm.doc.parent_item) {
-                    matched_row = row;
-                    console.log("matched_row",matched_row);
+    // let matched_row = null;
+            // frm.doc.parent_items_tables.forEach(function(row) {
+            //     if (row.variant_of !== frm.doc.parent_item) {
+            //         matched_row = row;
+            //         console.log("matched_row",matched_row);
 
-                }
-            });
+            //     }
+            // });
+            // Get selected item_name from the form
+    let selected_item = frm.doc.fetch_parent_item_rows;
+    // if (!selected_item && !frm.is_new()) {
+    //     frappe.msgprint(__('Please select an Parent item first.'));
+    //     return;
+    // }
+
+    // Find the matching row in `parent_items_table`
+    let matched_row = frm.doc.parent_items_tables.find(row => row.variant_of === selected_item);
+
 
             if (matched_row) {
                 // Set the parent form fields with the matched row's values
@@ -974,6 +850,7 @@ function fetch_parent_items(frm){
                 frm.set_value("dye_waste_percentage",matched_row.dye_waste_percentage);
                 frm.set_value("greigh_kgs",matched_row.greigh_kgs);
                 frm.set_value("final_lbs",matched_row.final_lbs);
+                frm.set_value("fancy",matched_row.fancy);
                 // Set more fields as necessary
 
                 // frappe.msgprint(__('Parent form fields updated from the child table.'));
@@ -1134,6 +1011,13 @@ const fetch_sales_order=(frm)=>{
                             fieldtype: 'Select',
                             options: ["LBS/DZ", "OZ/PC", "GM/MTR", "KG/YD"],
                             label: __('Weight Measuring Unit'),
+                            in_list_view: 0,
+                            columns: 1,
+                        },
+                        {
+                            fieldname: 'fancy',
+                            fieldtype: 'Data',
+                            label: __('Fancy'),
                             in_list_view: 0,
                             columns: 1,
                         },
@@ -1365,6 +1249,8 @@ const fetch_sales_order=(frm)=>{
                             frappe.model.set_value(cdt,cdn,"sh_rate",row.sh_rate)
                             frappe.model.set_value(cdt,cdn,"dye_waste_percentage",row.dye_waste_percentage)
                             frappe.model.set_value(cdt,cdn,"b_kgs_rate",row.b_kgs_rate)
+                            frappe.model.set_value(cdt,cdn,"fancy",row.fancy)
+
 
                          
                             
@@ -1543,19 +1429,23 @@ const fetch_sales_order=(frm)=>{
                                     "dye_waste_percentage" : frm.doc.dye_waste_percentage,
                                     "b_kgs_rate": frm.doc.b_kgs_rate,
                                     "cut_length": frm.doc.cut_length,
+                                    "fancy":frm.doc.fancy
                                 });
                                 dialog.fields_dict.items.df.data = dialog.fields_dict.items.df.data.map(variant => {
                                     // Check if the item is already in the main item table (e.g., frm.doc.items)
-                                    let existsInMainTable = frm.doc.items.some(item => item.item_name === variant.item_name);
+                                    let existsInMainTable = frm.doc.items.find(item => item.item_name === variant.item_name);
                                     
                                     // If exists, mark the select checkbox
                                     if (existsInMainTable) {
+                                        console.log("existsInMainTable",existsInMainTable);
                                         variant.check = 1;
                                         variant.disabled = true; // Add a flag to indicate the row should be frozen
+                                        variant.qty = existsInMainTable.qty;
                                                                            
                                     } else {
                                         variant.check = 0;
                                         variant.disabled = false; // Ensure editable if not exists
+                                        variant.qty = 0;
                                     }
                                 
                                     return variant;
@@ -1743,6 +1633,8 @@ frappe.ui.form.on('Sales Order',{
     },
     validate: function(frm, cdt, cdn) {
         
+        // restrict_over_item_qty(frm);
+
         //Setup item qty to total qty in pcs field
         frm.doc.items.forEach(function(item) {
             console.log("enter in after save");
@@ -1755,6 +1647,42 @@ frappe.ui.form.on('Sales Order',{
     }
     
 });
+
+function restrict_over_item_qty(frm) {
+    let sales_order_items = {};
+
+    // Aggregate total qty and secondary qty from Sales Order Item
+    frm.doc.items.forEach(item => {
+        let variant_of = item.variant_of;
+        let qty = item.qty || 0;
+        let secondary_qty = item.total_secondary_qty || 0;
+
+        if (variant_of) {
+            if (!sales_order_items[variant_of]) {
+                sales_order_items[variant_of] = {
+                    total_qty: 0,
+                    secondary_qty: secondary_qty // Store once since it's same for all variants
+                };
+            }
+            sales_order_items[variant_of].total_qty += qty;
+        }
+    });
+
+    // Compare summed qty with secondary qty
+    Object.keys(sales_order_items).forEach(variant_of => {
+        let total_qty = sales_order_items[variant_of].total_qty;
+        let secondary_qty = sales_order_items[variant_of].secondary_qty;
+
+        if (total_qty > secondary_qty) {
+            frappe.throw(__(`Total quantity (${total_qty}) for variant ${variant_of} exceeds the allowed secondary quantity (${secondary_qty})`));
+        }
+        if (total_qty < secondary_qty) {
+            frappe.throw(__(`Total quantity (${total_qty}) for variant ${variant_of} is less than the allowed secondary quantity (${secondary_qty})`));
+        }
+    });
+}
+
+
 frappe.ui.form.on('Sales Order Item',{
     greigh_weight_gmmt: function(frm,cdt,cdn){
         greigh_weight_gmmt(frm,cdt,cdn);
@@ -1941,43 +1869,6 @@ var b_qty = function(frm, cdt, cdn) {
 
 
 ////////////////////////////Add ROW WORKING START From here//////////////////////////
-
-// frappe.ui.form.on('Sales Order Raw Material', {
-//     component: function(frm) {
-//         console.log("Component work");
-//         // Your child table fieldname
-//         var childTable = "sales_order_raw_material";
-
-//         // Iterate through each row in the child table
-//         frm.doc[childTable].forEach(function(row) {
-//             // Check if the component name is "ground"
-//             if (row.component == "Ground") {
-//                 console.log("enter in ground");
-//                 // Add two rows with the specified values
-//                  addRow(frm, childTable, { parent_item: row.parent_item, component:"Pile" });
-//                 addRow(frm, childTable, { component: "Weft", parent_item: row.parent_item });
-//             }
-//         });
-//     }
-// });
-
-// // Function to add a row to the specified child table
-// function addRow(frm, childTable, values) {
-//     console.log("values");
-//     console.log(values);
-//     // var row = frappe.model.add_child(frm.doc, childTable);
-//     // frappe.model.set_value(row.doctype, row.name, values);
-    
-//     var childTable = cur_frm.add_child(childTable);
-//     childTable.component= values.component ;
-//     childTable.parent_item = values.parent_item ;
-//     // frappe.model.set_value(childTable.doctype, childTable.name, values);
-//     //frappe.model.set_value(childTable.doctype, childTable.name, values.parent_item);
-   
-
-//     cur_frm.refresh_fields(childTable);
-    
-// }
 
 
 frappe.ui.form.on('Sales Order Raw Material', {

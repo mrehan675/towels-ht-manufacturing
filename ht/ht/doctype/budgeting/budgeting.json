@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "naming_series:",
  "creation": "2023-10-27 17:24:15.789277",
@@ -425,7 +426,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-02-01 14:37:03.685246",
+ "modified": "2025-01-30 12:05:20.411090",
  "modified_by": "Administrator",
  "module": "HT",
  "name": "Budgeting",

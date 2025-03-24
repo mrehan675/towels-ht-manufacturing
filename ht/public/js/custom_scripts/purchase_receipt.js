@@ -968,67 +968,86 @@ const fetch_po_supplied_items = (frm) => {
 
                 {
                     fieldtype: 'Data',
-                    fieldname: 'job_no',
-                    read_only: 1,
-                    columns: 1,
-                    label: __('Job No'),
-                    default: frm.doc.job_number
+                    fieldname: 'item_name_filter',
+                    label: __('Filter by Purchase Order'),
+                    change: function () {
+                        
+                        applyFilter(dialog, frm);
+                    }
                 },
                 {
-                    fieldtype: 'Column Break'  
+                    fieldtype: 'Check',
+                    fieldname: 'no_filter',
+                    label: __('All data Order'),
+                    change: function () {
+                        
+                        all_data(dialog, frm);
+                    }
                 },
-                {
-                    fieldtype: 'Data',
-                    fieldname: 'item_name',
-                    read_only: 1,
-                    columns: 1,
-                    label: __('Item Name'),
-                    default: frm.doc.grn_items
-                },
-                {
-                    fieldtype: 'Column Break'  
-                },
-                {
-                    fieldtype: 'Float',
-                    fieldname: 'qty',
-                    read_only: 1,
-                    columns: 1,
-                    label: __('Qty'),
-                    default: frm.doc.stock_qty_
-                },
-                {
-                    fieldtype: 'Column Break'  
-                },
-                {
-                    fieldtype: 'Data',
-                    fieldname: 'brand',
-                    read_only: 1,
-                    columns: 1,
-                    label: __('Brand'),
-                    default: frm.doc.stock_brand_
-                },
-                {
-                    fieldtype: 'Column Break'  
-                },
-                {
-                    fieldtype: 'Data',
-                    fieldname: 'color',
-                    read_only: 1,
-                    columns: 1,
-                    label: __('Color'),
-                    default: frm.doc.stock_color_
-                },
-                {
-                    fieldtype: 'Column Break'  
-                },
-                {
-                    fieldtype: 'Data',
-                    fieldname: 'lbs',
-                    read_only: 1,
-                    columns: 1,
-                    label: __('LBS'),
-                    default: frm.doc.stock_lbs_
-                },
+                
+                // {
+                //     fieldtype: 'Data',
+                //     fieldname: 'job_no',
+                //     read_only: 1,
+                //     columns: 1,
+                //     label: __('Job No'),
+                //     default: frm.doc.job_number
+                // },
+                // {
+                //     fieldtype: 'Column Break'  
+                // },
+                // {
+                //     fieldtype: 'Data',
+                //     fieldname: 'item_name',
+                //     read_only: 1,
+                //     columns: 1,
+                //     label: __('Item Name'),
+                //     default: frm.doc.grn_items
+                // },
+                // {
+                //     fieldtype: 'Column Break'  
+                // },
+                // {
+                //     fieldtype: 'Float',
+                //     fieldname: 'qty',
+                //     read_only: 1,
+                //     columns: 1,
+                //     label: __('Qty'),
+                //     default: frm.doc.stock_qty_
+                // },
+                // {
+                //     fieldtype: 'Column Break'  
+                // },
+                // {
+                //     fieldtype: 'Data',
+                //     fieldname: 'brand',
+                //     read_only: 1,
+                //     columns: 1,
+                //     label: __('Brand'),
+                //     default: frm.doc.stock_brand_
+                // },
+                // {
+                //     fieldtype: 'Column Break'  
+                // },
+                // {
+                //     fieldtype: 'Data',
+                //     fieldname: 'color',
+                //     read_only: 1,
+                //     columns: 1,
+                //     label: __('Color'),
+                //     default: frm.doc.stock_color_
+                // },
+                // {
+                //     fieldtype: 'Column Break'  
+                // },
+                // {
+                //     fieldtype: 'Data',
+                //     fieldname: 'lbs',
+                //     read_only: 1,
+                //     columns: 1,
+                //     label: __('LBS'),
+                //     default: frm.doc.stock_lbs_
+                // },
 
 
 
@@ -1091,14 +1110,15 @@ const fetch_po_supplied_items = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Item Code'),
-                            columns: 2
+                            columns: 1.5
                         },
                         {
-                            fieldtype: 'Check',
-                            fieldname: "allow_alternate",
-                            label: __('Alternate'),
-                            in_list_view: 0,
-                            columns: 1,
+                            fieldtype: 'Data',
+                            fieldname: "brand",
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('Brand'),
+                            columns: 0.5
                         },
                         {
                             fieldtype: 'Data',
@@ -1214,6 +1234,13 @@ const fetch_po_supplied_items = (frm) => {
                             columns: 1
                         },
                         {
+                            fieldtype: 'Check',
+                            fieldname: "allow_alternate",
+                            label: __('Alternate'),
+                            in_list_view: 1,
+                            columns: 1,
+                        },
+                        {
                             fieldtype: 'Data',
                             fieldname: "item_row_name", 
                             in_list_view: 0,
@@ -1236,58 +1263,6 @@ const fetch_po_supplied_items = (frm) => {
             ],
             primary_action_label: 'Create Stock Entry',
             primary_action(values) {
-            //     if (values.items) {
-            //         let selectedItems = [];
-            //         let groupedItems = {}; 
-                
-                
-            //         for (let row of values.items) {
-            //         if (row.check === 1) { 
-            //             selectedItems.push({
-            //                 purchase_order: row.po_name,
-            //                 item_row_name: row.item_row_name,
-            //                 parent_item_code: row.parent_item_code,
-            //                 item_code: row.item_code,
-            //                 required_qty: row.required_qty,
-            //                 supplied_qty: row.supplied_qty,
-            //                 finish_weight_unit: row.finish_weight_unit,
-            //                 balance_qty: row.balance_qty
-            //             });
-            //         }
-            //     }
-
-            //     selectedItems.forEach(item => {
-            //         if (!groupedItems[item.purchase_order]) {
-            //             groupedItems[item.purchase_order] = [];
-            //         }
-            //         groupedItems[item.purchase_order].push(item);
-            //     });
-            //     console.log("Checking grouped",groupedItems);
-            //     for (let po in groupedItems) {
-
-            //     frappe.call({
-            //         method: "ht.utils.purchase_receipt.make_rm_stock_entry",
-            //         args: {
-            //             purchase_order: po, // Pass the PO number
-            //             items: groupedItems[po],
-            //             purchase_receipt : cur_frm.doc.name
-            //         },
-            //         callback: function (response) {
-            //             if (response.message) {
-            //                 frappe.msgprint(__('Stock Entry for PO ' + po + ' created successfully.'));
-            //                 cur_frm.refresh_field('items');
-            //             } else {
-            //                 frappe.msgprint(__('Failed to create Stock Entry for PO ' + po + '.'));
-            //             }
-            //         }
-            //     });
-
-
-            //         // cur_frm.refresh_field('items');
-            //         dialog.hide();
-            //     }
-            // }
-
             
                 if (values.items) {
                     let consolidatedItems = {};
@@ -1331,7 +1306,7 @@ const fetch_po_supplied_items = (frm) => {
                                     po_detail:[row.item_row_name],
                                     source_warehouse:[row.source_warehouse],
                                     target_warehouse:[row.target_warehouse],
-                                    
+                                    brand:[row.brand]                                   
                                     
                                 };
                             //} 
@@ -1410,68 +1385,293 @@ if (frm.doc.po_types === "Yarn Dying") {
     });
 }
     
+dialog.show();
+dialog.$wrapper.find('.modal-dialog').css("max-width", "90%");
 
 
+// let po_name_filter = dialog.get_value("item_name_filter");
+// if (po_name_filter){
+//     console.log("kcool");
+// }
+// else{
+    
+    
+// }
+    
 
        
-    frappe.call({
-        async: false,
-        method: "ht.utils.purchase_receipt.fetch_supplied_items",
-        args: {
-            stock_supplier: cur_frm.doc.stock_supplier_,
-            po_type: cur_frm.doc.po_types
-            
-        },
-        callback: function (r) {
-            if (r.message) {
-                for (let row of r.message) {
-                    console.log("ROw",row);
-                    // frappe.db.get_doc('Item', row.raw_mat_item)
-                        // .then(itm_doc => {
-                            setTimeout(() => {
-                                dialog.fields_dict.items.df.data.push({
-                                    "po_name":row.parent,
-                                    "item_row_name": row.name,
-                                    "job_no":row.job_number,
-                                    // "po_date": row.po_date,                                       
-                                    "parent_item_code":row.main_item_code,
-                                    "item_code": row.rm_item_code,
-                                    "required_qty": row.required_qty,
-                                    "supplied_qty": row.supplied_qty,
-                                    "finish_weight_unit": row.finish_weight_unit,
-                                    "finish_weight_uom": row.finish_weight_uom,
-                                    "finish_weight": row.finish_weight,
-                                    "lbs": row.lbs,
-                                    "fancy": row.fancy,
-                                    "dye_colour":row.dye_colour,
-                                    "dye_fancy":row.dye_fancy,
-                                    "uom":row.uom,
-                                    "category":row.uom,
-                                    "b_percent":row.b_percent,
-                                    "balance_qty": ((row.required_qty) - (row.supplied_qty)) || 0,
-                                    "target_warehouse": frm.doc.target_warehouse,
-                                    "source_warehouse": frm.doc.source_warehouse_
-                               
-                                });
-                                frm.data = dialog.fields_dict.items.df.data;
-                                dialog.fields_dict.items.grid.refresh();
-                            }, 500);
-                        // });
-                }
-                dialog.show();
-                dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
-            }
-        }
-    });
 
-    } else {
-    frappe.msgprint('Please Select Supplier / Job No and Purchase type');
-    }
+
+} else {
+frappe.msgprint('Please Select Supplier / Job No and Purchase type');
+}
 }
 
 
+// const applyFilter = (dialog, frm) => {
+//     let filter_value = dialog.get_value('item_name_filter').toLowerCase();
+
+//     console.log("filter",filter_value);
+    
+//     // Assume `frm.data` is your original dataset
+//     let filtered_data = frm.data.filter(row => {
+//         return !filter_value || row.po_name.toLowerCase().includes(filter_value);
+//     });
+
+//     console.log("filter_data",filtered_data);
+
+//     dialog.fields_dict.items.df.data = filtered_data;
+//     dialog.fields_dict.items.grid.refresh();
+
+// };
 
 
+// const applyFilter = (dialog, frm) => {
+//     console.log("enter in custom filter");
+//     let filter_value = dialog.get_value('item_name_filter').toLowerCase();
+
+//     console.log("filter", filter_value);
+
+//     // Show loading message
+//     frappe.msgprint({
+//         title: __('Filtering...'),
+//         message: __('Please wait while we filter the data.'),
+//         indicator: 'blue'
+//     });
+
+//     setTimeout(() => {
+//         // Assume `frm.data` is your original dataset
+//         let filtered_data = frm.data.filter(row => {
+//             return !filter_value || row.po_name.toLowerCase().includes(filter_value);
+//         });
+
+//         console.log("filter_data", filtered_data);
+
+//         dialog.fields_dict.items.df.data = filtered_data;
+//         dialog.fields_dict.items.grid.refresh();
+
+//         // Close the loading message
+//         frappe.hide_msgprint();
+//     }, 500);  // Simulating a slight delay for better UX
+// };
+
+// const applyFilter = (dialog, frm) => {
+//     console.log("Filter applied");
+
+//     let po_name_filter = dialog.get_value("item_name_filter");
+
+//     // Clear previous data before fetching new filtered data
+//     dialog.fields_dict.items.df.data = [];
+//     dialog.fields_dict.items.grid.refresh();
+
+//     frappe.call({
+//         async: false,
+//         method: "ht.utils.purchase_receipt.fetch_supplied_items",
+//         args: {
+//             stock_supplier: cur_frm.doc.stock_supplier_,
+//             po_type: cur_frm.doc.po_types,
+//             po_name_filter: po_name_filter || ""
+//         },
+//         callback: function (r) {
+//             if (r.message) {
+//                 console.log("Rows returned:", r.message.length);
+//                 console.log("Rows",r.message);
+
+                
+//                 // Populate the dialog table with filtered data
+//                 frm.data = r.message.map(row => ({
+//                     "po_name": row.parent,
+//                     "item_row_name": row.name,
+//                     "job_no": row.job_number,
+//                     "parent_item_code": row.main_item_code,
+//                     "item_code": row.rm_item_code,
+//                     "required_qty": row.required_qty,
+//                     "supplied_qty": row.supplied_qty,
+//                     "finish_weight_unit": row.finish_weight_unit,
+//                     "finish_weight_uom": row.finish_weight_uom,
+//                     "finish_weight": row.finish_weight,
+//                     "lbs": row.lbs,
+//                     "fancy": row.fancy,
+//                     "dye_colour": row.dye_colour,
+//                     "dye_fancy": row.dye_fancy,
+//                     "uom": row.uom,
+//                     "category": row.uom,
+//                     "b_percent": row.b_percent,
+//                     "balance_qty": (row.required_qty - row.supplied_qty) || 0,
+//                     "target_warehouse": frm.doc.target_warehouse,
+//                     "source_warehouse": frm.doc.source_warehouse_
+//                 }));
+
+//                 // Assign the filtered data back to the dialog's table
+//                 dialog.fields_dict.items.df.data = frm.data;
+//                 dialog.fields_dict.items.grid.refresh();
+//                 console.log("Filtered Data", frm.data);
+//             } else {
+//                 console.log("No matching records found.");
+//             }
+//         }
+//     });
+// };
+const applyFilter = (dialog, frm) => {
+    console.log("Applying filter...");
+
+    let po_name_filter = dialog.get_value("item_name_filter");
+
+    // Inject CSS if not already added
+    injectCustomLoaderCSS();
+
+    // Show the loader
+    let $loader = $('<div class="custom-loader">Loading...</div>');
+    $("body").append($loader); // Append to body for full-screen effect
+
+    // Clear previous data and refresh grid before API call
+    dialog.fields_dict.items.df.data = [];
+    dialog.fields_dict.items.grid.refresh();
+
+    frappe.call({
+        method: "ht.utils.purchase_receipt.fetch_supplied_items",
+        args: {
+            stock_supplier: cur_frm.doc.stock_supplier_,
+            po_type: cur_frm.doc.po_types,
+            po_name_filter: po_name_filter 
+        },
+        callback: function (r) {
+            // Hide the loader
+            
+
+           
+                console.log("Rows returned:", r.message.length);
+                console.log("Rows:", r.message);
+
+                let filtered_data = r.message.map(row => ({
+                    "po_name": row.parent,
+                    "item_row_name": row.name,
+                    "job_no": row.job_number,
+                    "parent_item_code": row.main_item_code,
+                    "item_code": row.rm_item_code,
+                    "required_qty": row.required_qty,
+                    "supplied_qty": row.supplied_qty,
+                    "finish_weight_unit": row.finish_weight_unit,
+                    "finish_weight_uom": row.finish_weight_uom,
+                    "finish_weight": row.finish_weight,
+                    "lbs": row.lbs,
+                    "fancy": row.fancy,
+                    "dye_colour": row.dye_colour,
+                    "dye_fancy": row.dye_fancy,
+                    "uom": row.uom,
+                    "category": row.uom,
+                    "b_percent": row.b_percent,
+                    "balance_qty": (row.required_qty - row.supplied_qty) || 0,
+                    "target_warehouse": frm.doc.target_warehouse,
+                    "source_warehouse": frm.doc.source_warehouse_,
+                    "brand":row.brand
+                }));
+
+                // Assign the new data array and refresh the grid
+                dialog.fields_dict.items.df.data = filtered_data;
+                dialog.fields_dict.items.grid.refresh();
+                $loader.remove();
+
+
+                console.log("Filtered Data:", filtered_data);
+            
+        },
+        error: function () {
+            // Hide the loader even if an error occurs
+            $loader.remove();
+        }
+    });
+};
+
+const all_data = (dialog, frm) => {
+    console.log("Applying filter...");
+
+
+    // Inject CSS if not already added
+    injectCustomLoaderCSS();
+
+    // Show the loader
+    let $loader = $('<div class="custom-loader">Loading...</div>');
+    $("body").append($loader); // Append to body for full-screen effect
+
+    // Clear previous data and refresh grid before API call
+    dialog.fields_dict.items.df.data = [];
+    dialog.fields_dict.items.grid.refresh();
+
+    frappe.call({
+        method: "ht.utils.purchase_receipt.fetch_supplied_items",
+        args: {
+            stock_supplier: cur_frm.doc.stock_supplier_,
+            po_type: cur_frm.doc.po_types,
+            po_name_filter: ""
+        },
+        callback: function (r) {
+            // Hide the loader                
+                console.log("Rows returned:", r.message.length);
+                console.log("Rows:", r.message);
+
+                let filtered_data = r.message.map(row => ({
+                    "po_name": row.parent,
+                    "item_row_name": row.name,
+                    "job_no": row.job_number,
+                    "parent_item_code": row.main_item_code,
+                    "item_code": row.rm_item_code,
+                    "required_qty": row.required_qty,
+                    "supplied_qty": row.supplied_qty,
+                    "finish_weight_unit": row.finish_weight_unit,
+                    "finish_weight_uom": row.finish_weight_uom,
+                    "finish_weight": row.finish_weight,
+                    "lbs": row.lbs,
+                    "fancy": row.fancy,
+                    "dye_colour": row.dye_colour,
+                    "dye_fancy": row.dye_fancy,
+                    "uom": row.uom,
+                    "category": row.uom,
+                    "b_percent": row.b_percent,
+                    "balance_qty": (row.required_qty - row.supplied_qty) || 0,
+                    "target_warehouse": frm.doc.target_warehouse,
+                    "source_warehouse": frm.doc.source_warehouse_
+                }));
+
+                // Assign the new data array and refresh the grid
+                dialog.fields_dict.items.df.data = filtered_data;
+                dialog.fields_dict.items.grid.refresh();
+                $loader.remove();
+
+
+                console.log("Filtered Data:", filtered_data);
+            
+        },
+        error: function () {
+            // Hide the loader even if an error occurs
+            $loader.remove();
+        }
+    });
+};
+
+// Inject custom loader CSS dynamically
+const injectCustomLoaderCSS = () => {
+    if (!document.getElementById("custom-loader-style")) {
+        let style = document.createElement("style");
+        style.id = "custom-loader-style";
+        style.innerHTML = `
+            .custom-loader {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.75);
+                color: white;
+                padding: 20px;
+                font-size: 18px;
+                font-weight: bold;
+                border-radius: 5px;
+                z-index: 10000;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+};
 
 
 
@@ -1631,6 +1831,14 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                             read_only: 1,
                             label: __('Uom'),
                             columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "fancy",
+                            in_list_view: 0,
+                            read_only: 0,
+                            label: __('Fancy'),
+                            columns: 1
                         }
                     ]
                 }
@@ -1670,6 +1878,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                             frappe.model.set_value(cdt, cdn, 'bag_ctn', row.bag_ctn);
                             frappe.model.set_value(cdt, cdn, 'lbs_bag', row.lbs_bag);
                             frappe.model.set_value(cdt, cdn, 'uom', row.uom);
+                            frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
 
 
                         }
@@ -1715,7 +1924,8 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                                         "balance_qty": ((row.qty) - (row.received_qty)) || 0,
                                         "bag_ctn":row.bag_ctn,
                                         "lbs_bag":row.lbs_bag,
-                                        "uom":row.uom
+                                        "uom":row.uom,
+                                        "fancy":row.fancy
                                     });
                                     frm.data = dialog.fields_dict.items.df.data;
                                     dialog.fields_dict.items.grid.refresh();
@@ -1724,7 +1934,7 @@ const fetch_po_for_yarn_purchase_receipt = (frm) => {
                     // }
                 }
                     dialog.show();
-                    dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
+                    dialog.$wrapper.find('.modal-dialog').css("max-width", "100%");
                 }
             }
         });
@@ -1767,7 +1977,7 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('PO No'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Date',
@@ -1783,7 +1993,7 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Item Code'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Data',
@@ -1799,6 +2009,14 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                             in_list_view: 0,
                             read_only: 1,
                             label: __('Description'),
+                            columns: 2
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "uom",
+                            in_list_view: 0,
+                            read_only: 1,
+                            label: __('Uom'),
                             columns: 2
                         },
                         {
@@ -1830,7 +2048,7 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Total Received Qty'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Float',
@@ -1843,7 +2061,7 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                         {
                             fieldtype: 'Data',
                             fieldname: "fancy",
-                            in_list_view: 0,
+                            in_list_view: 1,
                             read_only: 1,
                             label: __('Fancy'),
                             columns: 1
@@ -1864,6 +2082,7 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                             label: __('Finish Weight Unit'),
                             columns: 1
                         }
+                          
                     ]
                 }
             ],
@@ -1888,6 +2107,8 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
 
                             frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
                             frappe.model.set_value(cdt, cdn, 'qty', row.balance_qty);
+                            frappe.model.set_value(cdt, cdn, 'uom', row.uom);
+
                             // setTimeout(function() {
                                 frappe.model.set_value(cdt, cdn, 'rate', row.rate);
                                 frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
@@ -1933,10 +2154,12 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                                         "fancy": row.fancy,
                                         "qty": row.qty,
                                         "rate":row.rate,
+                                        "uom":row.uom,
                                         "total_received_qty": row.received_qty,
                                         "greigh_weigh_unit": row.greigh_weigh_unit,
                                         "finish_weight_unit": row.finish_weight_unit,
-                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0
+                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0,
+                                        "fancy":row.fancy
                                     });
                                     frm.data = dialog.fields_dict.items.df.data;
                                     dialog.fields_dict.items.grid.refresh();
@@ -1944,7 +2167,7 @@ const fetch_po_for_weaving_purchase_receipt = (frm) => {
                             // });
                     }
                     dialog.show();
-                    dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
+                    dialog.$wrapper.find('.modal-dialog').css("max-width", "100%");
                 }
             }
         });
@@ -2073,6 +2296,14 @@ const fetch_po_for_accessories_purchase_receipt = (frm) => {
                             read_only: 1,
                             label: __('Balance Qty'),
                             columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "fancy", 
+                            in_list_view: 0,
+                            read_only: 0,
+                            label: __('Fancy'),
+                            columns: 1
                         }
                        
                     ]
@@ -2101,6 +2332,8 @@ const fetch_po_for_accessories_purchase_receipt = (frm) => {
                             
                             frappe.model.set_value(cdt, cdn, 'category', row.category);
                             frappe.model.set_value(cdt, cdn, 'qty', row.balance_qty);
+                            frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
+
 
                             setTimeout(function() {
                                 frappe.model.set_value(cdt, cdn, 'rate', row.rate);
@@ -2147,7 +2380,8 @@ const fetch_po_for_accessories_purchase_receipt = (frm) => {
                                         "total_received_qty": row.received_qty,
                                         "job_no": row.job_no,
                                         "uom": row.uom,
-                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0
+                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0,
+                                        "fancy":row.fancy
                                     });
                                     frm.data = dialog.fields_dict.items.df.data;
                                     dialog.fields_dict.items.grid.refresh();
@@ -2155,7 +2389,7 @@ const fetch_po_for_accessories_purchase_receipt = (frm) => {
                             // });
                     }
                     dialog.show();
-                    dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
+                    dialog.$wrapper.find('.modal-dialog').css("max-width", "100%");
                 }
             }
         });
@@ -2288,6 +2522,14 @@ const fetch_po_yarn_dying_po_pr = (frm) => {
                             read_only: 1,
                             label: __('Balance Qty'),
                             columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "fancy", 
+                            in_list_view: 0,
+                            read_only: 0,
+                            label: __('Fancy'),
+                            columns: 1
                         }
                        
                     ]
@@ -2313,6 +2555,8 @@ const fetch_po_yarn_dying_po_pr = (frm) => {
                             frappe.model.set_value(cdt, cdn, 'item_name', row.item_name);
                             frappe.model.set_value(cdt, cdn, 'description', row.description);
                             frappe.model.set_value(cdt, cdn, 'uom', row.uom);
+                            frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
+
                             
                             frappe.model.set_value(cdt, cdn, 'category', row.category);
                             frappe.model.set_value(cdt, cdn, 'qty', row.balance_qty);
@@ -2361,7 +2605,8 @@ const fetch_po_yarn_dying_po_pr = (frm) => {
                                         "total_received_qty": row.received_qty,
                                         "job_no": row.job_no,
                                         "uom": row.uom,
-                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0
+                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0,
+                                        "fancy":row.fancy
                                     });
                                     frm.data = dialog.fields_dict.items.df.data;
                                     dialog.fields_dict.items.grid.refresh();
@@ -2369,7 +2614,7 @@ const fetch_po_yarn_dying_po_pr = (frm) => {
                             // });
                     }
                     dialog.show();
-                    dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
+                    dialog.$wrapper.find('.modal-dialog').css("max-width", "100%");
                 }
             }
         });
@@ -2411,7 +2656,7 @@ const fetch_po_dying_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('PO No'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Data',
@@ -2424,10 +2669,10 @@ const fetch_po_dying_purchase_receipt = (frm) => {
                         {
                             fieldtype: 'Data',
                             fieldname: "color",
-                            in_list_view: 0,
+                            in_list_view: 1,
                             read_only: 1,
                             label: __('Color'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Data',
@@ -2503,7 +2748,7 @@ const fetch_po_dying_purchase_receipt = (frm) => {
                         {
                             fieldtype: 'Data',
                             fieldname: "fancy", 
-                            in_list_view: 0,
+                            in_list_view: 1,
                             read_only: 0,
                             label: __('Fancy'),
                             columns: 1
@@ -2511,12 +2756,13 @@ const fetch_po_dying_purchase_receipt = (frm) => {
                         {
                             fieldtype: 'Data',
                             fieldname: "finish_weight", 
-                            in_list_view: 0,
+                            in_list_view: 1,
                             read_only: 0,
                             label: __('Finish Weight'),
                             columns: 1
-                        },
-                    ]
+                        }
+                    ],
+                    //  size:"large"
                 }
             ],
             primary_action_label: 'Get Items',
@@ -2585,20 +2831,27 @@ const fetch_po_dying_purchase_receipt = (frm) => {
                                         "finish_weight": row.finish_weight,
                                         "fancy": row.fancy,                             
                                         "color": row.color,
-                                        "qty_in_pcs": row.qty_in_pcs,
+                                        // "qty_in_pcs": row.qty_in_pcs,
+                                        "qty_in_pcs": row.qty,
                                         "rate":row.rate,
                                         "job_no": row.job_no,
                                         "uom": row.uom,
                                         "total_received_qty": row.received_qty,                                        
-                                        "balance_qty": ((row.qty_in_pcs) - (row.received_qty)) || 0
+                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0,
+                                        "fancy":row.fancy
                                     });
                                     frm.data = dialog.fields_dict.items.df.data;
                                     dialog.fields_dict.items.grid.refresh();
+                                    
                                 }, 500);
                             // });
                     }
                     dialog.show();
-                    dialog.$wrapper.find('.modal-dialog').css("max-width", "80%");
+                    dialog.$wrapper.find('.modal-dialog').css("max-width", "100%");
+
+
+                
+                    
                 }
             }
         });
@@ -2640,11 +2893,19 @@ const fetch_po_stitching_bathrobe_purchase_receipt = (frm) => {
                     fields: [
                         {
                             fieldtype: 'Data',
+                            fieldname: "po_date", 
+                            in_list_view: 1,
+                            read_only: 1,
+                            label: __('PO Date'),
+                            columns:   0.5
+                        },
+                        {
+                            fieldtype: 'Data',
                             fieldname: "po_name", 
                             in_list_view: 1,
                             read_only: 1,
                             label: __('PO No'),
-                            columns:   2
+                            columns:   1
                         },
                         {
                             fieldtype: 'Data',
@@ -2652,15 +2913,15 @@ const fetch_po_stitching_bathrobe_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Job No'),
-                            columns: 1
+                            columns: 0.5
                         },
                         {
                             fieldtype: 'Data',
                             fieldname: "color",
-                            in_list_view: 0,
+                            in_list_view: 1,
                             read_only: 1,
                             label: __('Color'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Data',
@@ -2668,7 +2929,7 @@ const fetch_po_stitching_bathrobe_purchase_receipt = (frm) => {
                             in_list_view: 1,
                             read_only: 1,
                             label: __('Item Code'),
-                            columns: 2
+                            columns: 1
                         },
                         {
                             fieldtype: 'Data',
@@ -2705,17 +2966,17 @@ const fetch_po_stitching_bathrobe_purchase_receipt = (frm) => {
                         {
                             fieldtype: 'Data',
                             fieldname: "rate",
-                            in_list_view: 0,
+                            in_list_view: 1,
                             read_only: 1,
                             label: __('Rate'),
-                            columns: 1
+                            columns: 0.5
                         },
                         {
                             fieldtype: 'Check',
                             fieldname: "check",
                             label: __('Select'),
                             in_list_view: 1,
-                            columns: 1,
+                            columns: 0.5,
                         },
                         {
                             fieldtype: 'Float',
@@ -2736,7 +2997,7 @@ const fetch_po_stitching_bathrobe_purchase_receipt = (frm) => {
                         {
                             fieldtype: 'Data',
                             fieldname: "cut_length", 
-                            in_list_view: 0,
+                            in_list_view: 1,
                             read_only: 0,
                             label: __('Cut Length'),
                             columns: 1
@@ -2744,9 +3005,17 @@ const fetch_po_stitching_bathrobe_purchase_receipt = (frm) => {
                         {
                             fieldtype: 'Data',
                             fieldname: "finish_weight", 
-                            in_list_view: 0,
+                            in_list_view: 1,
                             read_only: 0,
                             label: __('Finish Weight'),
+                            columns: 1
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "fancy", 
+                            in_list_view: 0,
+                            read_only: 0,
+                            label: __('Fancy'),
                             columns: 1
                         },
                     ]
@@ -2772,10 +3041,12 @@ const fetch_po_stitching_bathrobe_purchase_receipt = (frm) => {
                             frappe.model.set_value(cdt, cdn, 'item_name', row.item_name);
                             frappe.model.set_value(cdt, cdn, 'description', row.description);
                             frappe.model.set_value(cdt, cdn, 'uom', row.uom);                            
-                            frappe.model.set_value(cdt, cdn, 'fancy', row.cut_length);
+                            // frappe.model.set_value(cdt, cdn, 'fancy', row.cut_length);
                             frappe.model.set_value(cdt, cdn, 'yarn_color', row.color);
                             frappe.model.set_value(cdt, cdn, 'qty', row.qty);
                             frappe.model.set_value(cdt, cdn, 'finish_weight_unit', row.finish_weight);
+                            frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
+
                             setTimeout(function() {
                                 frappe.model.set_value(cdt, cdn, 'rate', row.rate);
                                 frappe.model.set_value(cdt, cdn, 'price_list_rate', row.rate);
@@ -2823,7 +3094,8 @@ const fetch_po_stitching_bathrobe_purchase_receipt = (frm) => {
                                         "job_no": row.job_no,
                                         "uom": row.uom,
                                         "total_received_qty": row.received_qty,                                        
-                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0
+                                        "balance_qty": ((row.qty) - (row.received_qty)) || 0,
+                                        "fancy":row.fancy
                                     });
                                     frm.data = dialog.fields_dict.items.df.data;
                                     dialog.fields_dict.items.grid.refresh();
@@ -2831,7 +3103,7 @@ const fetch_po_stitching_bathrobe_purchase_receipt = (frm) => {
                             // });
                     }
                     dialog.show();
-                    dialog.$wrapper.find('.modal-dialog').css("max-width", "70%");
+                    dialog.$wrapper.find('.modal-dialog').css("max-width", "100%");
                 }
             }
         });

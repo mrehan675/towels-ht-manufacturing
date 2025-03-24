@@ -522,7 +522,8 @@ function update_dying_service(frm){
 frappe.ui.form.on("Purchase Order", {
     update_values: function (frm) {
     
-//First Fetching Values based on each Po type
+    //First Fetching Values based on each Po type
+    
     if (frm.doc.purchase_type == 'Weaving Service'){
         update_weave_service(frm);
     }
@@ -912,17 +913,29 @@ frappe.ui.form.on('Purchase Order', {
         }
     },
     before_save:function(frm){
+        if (frm.doc.purchase_type != 'Yarn Purchase' && frm.doc.purchase_type != 'Accessories'){
+            console.log("ddgg")
+            var reserve_warehouse_value = frm.doc.set_reserve_warehouse;
 
+            if (reserve_warehouse_value){
+            frm.doc.supplied_items.forEach(function(row) {
+                row.reserve_warehouse = reserve_warehouse_value;
+            });
+            
+                frm.refresh_field('supplied_items');
+            }
+            
+        }
 
         // before_save:function(frm) {
-            console.log("tttttttttttttttt");
-            if (!is_setting_color) {
-                console.log("llllllllll");
-                is_setting_color = true;
-                 set_item_color(frm);
-                //  frm.save();
-                is_setting_color = false;
-            }
+        console.log("tttttttttttttttt");
+        if (!is_setting_color) {
+            console.log("llllllllll");
+            is_setting_color = true;
+                set_item_color(frm);
+            //  frm.save();
+            is_setting_color = false;
+        }
             // frm.save();
         // }
     //  set_item_color(frm);
@@ -940,11 +953,12 @@ frappe.ui.form.on('Purchase Order', {
                   
         }
         else if (frm.doc.purchase_type == 'Dying Service'){
-            set_dye_value_after_save(frm,variant_dict,req_qty_qty)
+            // set_dye_value_after_save(frm,variant_dict,req_qty_qty);  //previous
+            set_required_qty(frm);
 
         }
         else if (frm.doc.purchase_type == 'Stitching Service' || frm.doc.purchase_type == 'Stitching Bathrobe  Service'){
-            set_stitch_value_after_save(frm,variant_dict,req_qty_qty)
+            // set_stitch_value_after_save(frm,variant_dict,req_qty_qty)
             
             // if(frm.doc.purchase_type == 'Stitching Bathrobe  Service'){
             //     set_consumption_meter(frm)
@@ -973,7 +987,7 @@ frappe.ui.form.on('Purchase Order', {
         
 
         // },
-    
+        
         bag_ctn: function(frm,cdt,cdn){
             // var child = locals[cdt][cdn];
           
@@ -1057,9 +1071,19 @@ frappe.ui.form.on('Purchase Order', {
                     ]
                 };
             }
+
+            if (frm.doc.purchase_type == "Yarn Purchase") {
+                return {
+                    filters: [
+                        ["Item", "item_group", "in", ["Raw Material"]]
+                    ]
+                };
+            }
         });
 
     }
+
+    
     
     function set_consumption_meter(frm){
    
@@ -1139,13 +1163,24 @@ frappe.ui.form.on('Purchase Order', {
             frappe.model.set_value(cdt, cdn, 'amount', amount);
         }, 100); // Adjust the delay time as needed
     }
+    // function cal_weaving_rate(frm, cdt, cdn) {
+    //     setTimeout(function() {
+    //         var child = locals[cdt][cdn];
+    //         var amount = child.qty  * child.rate_per_lbs;
+           
+           
+    //         frappe.model.set_value(cdt, cdn, 'rate',  child.rate_per_lbs);
+    //         frappe.model.set_value(cdt, cdn, 'amount', amount);
+            
+    //     }, 100); // Adjust the delay time as needed
+    // }
     function cal_weaving_rate(frm, cdt, cdn) {
         setTimeout(function() {
             var child = locals[cdt][cdn];
-            var amount = child.qty  * child.rate_per_lbs;
+            var amount = child.qty  * child.rate;
            
            
-            frappe.model.set_value(cdt, cdn, 'rate',  child.rate_per_lbs);
+            // frappe.model.set_value(cdt, cdn, 'rate',  child.rate);
             frappe.model.set_value(cdt, cdn, 'amount', amount);
             
         }, 100); // Adjust the delay time as needed
@@ -1253,7 +1288,37 @@ frappe.ui.form.on('Purchase Order', {
 
     
 
+    //dying service
+    function set_required_qty(frm) {
+        if (!frm.doc.items || !frm.doc.supplied_items) {
+            return;
+        }
+    
+        // Create a mapping of item_code → qty from the 'items' table
+        let item_qty_map = {};
+        frm.doc.items.forEach(item => {
+            console.log("item_code_so",item.item_code_so);
+            if (item.item_code_so){
+                item_qty_map[item.item_code_so] = item.qty;
+            }
+        });
+        console.log("item_qty_map",item_qty_map);
+    
+        // Update 'required_qty' in supplied_items if item_code matches
+        frm.doc.supplied_items.forEach(supplied_item => {
+            console.log("supplied item_code_so",supplied_item.item_code_so_supplied);
+            if (supplied_item.item_code_so_supplied){
+                if (item_qty_map[supplied_item.item_code_so_supplied]) {
 
+                    supplied_item.required_qty = item_qty_map[supplied_item.item_code_so_supplied];
+                }
+            }
+           
+        });
+    
+        // frappe.msgprint(__('Required Qty updated in Supplied Items Table'), { indicator: 'green' });
+    }
+    
 
 
     // dying service
@@ -1711,6 +1776,14 @@ const fetch_sales_order=(frm)=>{
                             read_only: 1,
                             label: __('So Row Name'),
                             columns: 2
+                        },
+                        {
+                            fieldtype: 'Data',
+                            fieldname: "fancy",
+                            in_list_view: 0,
+                            read_only: 0,
+                            label: __('Fancy'),
+                            columns: 2
                         }
                     ]
                 }
@@ -1737,6 +1810,8 @@ const fetch_sales_order=(frm)=>{
                                 frappe.model.set_value(cdt, cdn, 'finish_weight_uom', row.weight_measuring_unit);
                                 frappe.model.set_value(cdt, cdn, 'greigh_weigh_unit', row.greigh_weight);
                                 frappe.model.set_value(cdt, cdn, 'greigh_weigh_uom', row.weight_measuring_unit);
+                                frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
+
                                 if (frm.doc.purchase_type == "Weaving Service" && row.weight_measuring_unit == "GM/MTR"){
                                     frappe.model.set_value(cdt, cdn, 'total_parent_qty', row.total_secondary_qty_with_b_percent);
                                     frappe.model.set_value(cdt,cdn, 'qty',row.total_secondary_qty_with_b_percent);
@@ -1768,6 +1843,7 @@ const fetch_sales_order=(frm)=>{
                                     let child = frm.add_child('supplied_items');
                                     let cdt = child.doctype
                                     let cdn = child.name
+                                    console.log("r message",r.message);
                                     frappe.model.set_value(cdt, cdn, "main_item_code", row.parent_item);
                                     frappe.model.set_value(cdt, cdn, "item_code", row.item_code);
                                     frappe.model.set_value(cdt, cdn, "description", row.uom);
@@ -1776,6 +1852,8 @@ const fetch_sales_order=(frm)=>{
                                     frappe.model.set_value(cdt, cdn, "actual_qty", row.consumption_lbs);
                                     frappe.model.set_value(cdt, cdn, "component", row.component);
                                     frappe.model.set_value(cdt, cdn, "consumption", row.consumption_);
+                                    frappe.model.set_value(cdt, cdn, "brand", row.brand);
+
                                 
                                 }
                             }
@@ -1836,7 +1914,8 @@ const fetch_sales_order=(frm)=>{
                                         "sales_order_qty" : total_qty, // pcs or mtr
                                         "order_place_qty":row.order_placed_qty || 0,
                                         "balance_qty":((total_qty) - (row.order_placed_qty)) || 0,
-                                        "so_row_name": row.name
+                                        "so_row_name": row.name,
+                                        "fancy":row.fancy
 
                                     });
 
@@ -1886,6 +1965,7 @@ const fetch_so_dying_service = (frm) => {
                     fields: [
                         { fieldtype: 'Data', fieldname: "parent_item_name", in_list_view: 1, read_only: 1, label: __('Parent Item'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "item_code", in_list_view: 1, read_only: 1, label: __('Item Code'), columns: 2 },
+                        { fieldtype: 'Data', fieldname: "item_code_so", in_list_view: 0, read_only: 1, label: __('SO Item Code'), columns: 2 },
                         { fieldtype: 'Data', fieldname: "item_name", in_list_view: 0, read_only: 1, label: __('Item Name'), columns: 2 },
                         { fieldtype: 'Data', fieldname: "description", in_list_view: 0, read_only: 1, label: __('Description'), columns: 2 },
                         { fieldtype: 'Check', fieldname: "check", label: __('Select'), in_list_view: 1, columns: 1 },
@@ -1900,8 +1980,9 @@ const fetch_so_dying_service = (frm) => {
                         { fieldtype: 'Float',fieldname: "dying_sales_order_qty", in_list_view: 1,read_only: 1,label: __('Sales Order Qty'), columns: 1},                            
                         { fieldtype: 'Float',fieldname: "dying_order_place_qty",in_list_view: 1,read_only: 1,label: __('Order Place Qty'),columns: 1},
                         { fieldtype: 'Float',fieldname: "dying_balance_qty",in_list_view: 1,read_only: 1,label: __('Balance Qty'),columns: 1},
+                        { fieldtype: 'Data', fieldname: "fancy", in_list_view: 0, read_only: 0, label: __('Fancy'), columns: 2 },
                         { fieldtype: 'Data', fieldname: "so_row_name", in_list_view: 0, read_only: 1, label: __('So Row Name'), columns: 2 },
-                          
+
                             
                            
                     
@@ -1922,11 +2003,14 @@ const fetch_so_dying_service = (frm) => {
 
                             frappe.model.set_value(cdt, cdn, 'parent_item', row.parent_item_name);
                             frappe.model.set_value(cdt, cdn, 'item_code', row.item_code);
+                            frappe.model.set_value(cdt, cdn, 'item_code_so', row.item_code_so);
                             frappe.model.set_value(cdt, cdn, 'item_name', row.item_name);
                             frappe.model.set_value(cdt, cdn, 'description', row.description);
                             frappe.model.set_value(cdt, cdn, 'uom', row.uom);
                             frappe.model.set_value(cdt, cdn, 'qty', row.qty_in_pcs);
                             frappe.model.set_value(cdt, cdn, 'qty_in_pcs', row.qty);
+                            frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
+
                             // frappe.model.set_value(cdt, cdn, 'cut_length', row.cut_length);
 
 
@@ -1952,6 +2036,7 @@ const fetch_so_dying_service = (frm) => {
                         callback: (r) => {
                             if (r.message) {
                                 for (let row of r.message) {
+                                    console.log("r.message",r.message);
                                     if (po_check_itemslist.includes(row.variant_of)) {
                                         let child = frm.add_child('supplied_items');
                                         let cdt = child.doctype;
@@ -1962,7 +2047,10 @@ const fetch_so_dying_service = (frm) => {
                                         
                                         frappe.model.set_value(cdt, cdn, "main_item_code", row.variant_of);
                                         frappe.model.set_value(cdt, cdn, "rm_item_code", row.item_code);
-                                        frappe.model.set_value(cdt, cdn, "required_qty", req_qty);
+                                        frappe.model.set_value(cdt, cdn, "item_code_so_supplied", row.so_item);
+                                        frappe.model.set_value(cdt, cdn, "brand", row.brand);
+
+                                        // frappe.model.set_value(cdt, cdn, "required_qty", req_qty);
                                     }
                                 }
                             }
@@ -1996,7 +2084,9 @@ const fetch_so_dying_service = (frm) => {
                                     "parent_item_name": row.variant_of,
                                     "item_code": row.item_code,
                                     "item_name": row.item_name,
+                                    "item_code_so":row.so_item_main,
                                     "description": row.description,
+                                    "fancy":row.fancy,
                                     // "qty": ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000)) * 2.2046, // in lbs
                                     // "qty_in_kgs": ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000)), // in kgs
 
@@ -2036,6 +2126,8 @@ const fetch_so_dying_service = (frm) => {
                                     
                                 }
                                 else{
+                                    console.log("enter in else for dy");
+                                    
                                     // Normal towel item 
                                     qty_in_kgs =  ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000));
                                     qty = ((row.qty * (1 + row.b_percent / 100)) * (row.net_weight / 1000)) * 2.2046;
@@ -2043,6 +2135,10 @@ const fetch_so_dying_service = (frm) => {
                                     dialog_data["qty_in_kgs"] = qty_in_kgs;
                                     dialog_data["qty"] = qty;
                                     dialog_data["qty_in_pcs"] = ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0;//pcs
+                                    
+                                    console.log("qty_kgs",qty_in_kgs);
+                                    console.log("((row.qty_with_b_percent) - (row.order_placed_qty)) || 0;",((row.qty_with_b_percent) - (row.order_placed_qty)) || 0);
+                                    console.log("Qty",qty);
 
 
                                 }
@@ -2115,6 +2211,7 @@ const stitching_service = (frm) => {
                     fields: [
                         { fieldtype: 'Data', fieldname: "parent_item_name", in_list_view: 1, read_only: 1, label: __('Parent Item'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "item_code", in_list_view: 1, read_only: 1, label: __('Item Code'), columns: 2 },
+                        { fieldtype: 'Data', fieldname: "item_code_so", in_list_view: 0, read_only: 1, label: __('Item Code SO'), columns: 2 },
                         { fieldtype: 'Data', fieldname: "item_name", in_list_view: 0, read_only: 1, label: __('Item Name'), columns: 1 },
                         { fieldtype: 'Data', fieldname: "description", in_list_view: 0, read_only: 1, label: __('Description'), columns: 2 },
                         { fieldtype: 'Check', fieldname: "check", label: __('Select'), in_list_view: 1, columns: 1 },
@@ -2131,6 +2228,8 @@ const stitching_service = (frm) => {
                         { fieldtype: 'Float',fieldname: "stitch_sales_order_qty", in_list_view: 1,read_only: 1,label: __('Sales Order Qty'), columns: 1},                            
                         { fieldtype: 'Float',fieldname: "stitch_order_place_qty",in_list_view: 1,read_only: 1,label: __('Order Place Qty'),columns: 1},
                         { fieldtype: 'Float',fieldname: "stitch_balance_qty",in_list_view: 1,read_only: 1,label: __('Balance Qty'),columns: 1},
+                        { fieldtype: 'Data', fieldname: "fancy", in_list_view: 0, read_only: 0, label: __('Fancy'), columns: 2 },
+
                         { fieldtype: 'Data', fieldname: "so_row_name", in_list_view: 0, read_only: 1, label: __('So Row Name'), columns: 2 },
                           
                         
@@ -2152,6 +2251,7 @@ const stitching_service = (frm) => {
 
                             frappe.model.set_value(cdt, cdn, 'parent_item', row.parent_item_name);
                             frappe.model.set_value(cdt, cdn, 'item_code', row.item_code);
+                            frappe.model.set_value(cdt, cdn, 'item_code_so', row.item_code_so);
                             frappe.model.set_value(cdt, cdn, 'item_name', row.item_name);
                             frappe.model.set_value(cdt, cdn, 'description', row.description);
                             frappe.model.set_value(cdt, cdn, 'uom', row.uom);
@@ -2164,6 +2264,8 @@ const stitching_service = (frm) => {
                             frappe.model.set_value(cdt, cdn, 'orginal_item', row.orginal_item);
                             frappe.model.set_value(cdt, cdn, 'so_row_name', row.so_row_name);
                             frappe.model.set_value(cdt, cdn, 'cut_length', row.cut_length);
+                            frappe.model.set_value(cdt, cdn, 'fancy', row.fancy);
+
 
                         }
                     }
@@ -2193,8 +2295,11 @@ const stitching_service = (frm) => {
 
                                         frappe.model.set_value(cdt, cdn, "main_item_code", row.variant_of);
                                         frappe.model.set_value(cdt, cdn, "rm_item_code", row.item_code);
+                                        frappe.model.set_value(cdt, cdn, "item_code_so_supplied", row.so_item_main);
                                         frappe.model.set_value(cdt, cdn, "required_qty", req_qty);
                                         frappe.model.set_value(cdt,cdn, "required_qty_lbs", req_qty_lbs );
+                                        frappe.model.set_value(cdt,cdn, "brand", row.brand );
+
                                     }
                                 }
                             }
@@ -2225,6 +2330,7 @@ const stitching_service = (frm) => {
                                     "parent_item_name": row.variant_of,
                                     "item_code": row.item_code,
                                     "item_name": row.item_name,
+                                    "item_code_so":row.so_item_main,
                                     "description": row.description,
                                     "qty": (row.qty * (1 + row.b_percent / 100)), // in lbs
                                     "qty_in_pcs": row.qty, // in pcs
@@ -2238,7 +2344,8 @@ const stitching_service = (frm) => {
                                     "so_row_name": row.name,
                                     "stitch_sales_order_qty" : row.qty_with_b_percent,
                                     "stitch_order_place_qty" : row.order_placed_qty || 0,
-                                    "stitch_balance_qty"   : ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0
+                                    "stitch_balance_qty"   : ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0,
+                                    "fancy":row.fancy
 
 
                                 });
@@ -2261,7 +2368,8 @@ const stitching_service = (frm) => {
                                     "so_row_name": row.name,
                                     "stitch_sales_order_qty" : row.qty_with_b_percent,
                                     "stitch_order_place_qty" : row.order_placed_qty || 0,
-                                    "stitch_balance_qty"   : ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0
+                                    "stitch_balance_qty"   : ((row.qty_with_b_percent) - (row.order_placed_qty)) || 0,
+                                    "fancy":row.fancy
 
 
                                 });
@@ -2407,6 +2515,7 @@ const fetch_so_yarn_dyeing = (frm) => {
                             frappe.model.set_value(cdt, cdn, 'uom', "lbs");
                             frappe.model.set_value(cdt, cdn, 'qty', row.dye_consumption_lbs);
                             frappe.model.set_value(cdt, cdn, 'so_row_name', row.so_row_name);
+
                         }
                     }
 

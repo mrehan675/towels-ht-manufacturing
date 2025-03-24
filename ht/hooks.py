@@ -51,6 +51,8 @@ fixtures = [
 
 # include js in page
 # page_js = {"page" : "public/js/file.js"}
+page_js = {"print" : "public/js/pages/print.js"}
+
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
@@ -64,6 +66,7 @@ doctype_js = {
 	"Sales Order" : "public/js/custom_scripts/sales_order.js",
     "Purchase Order" : "public/js/custom_scripts/purchase_order.js",
 	"Purchase Receipt" : "public/js/custom_scripts/purchase_receipt.js",
+ 	"Purchase Invoice" : "public/js/custom_scripts/purchase_invoice.js",
 	"Stock Entry" : "public/js/custom_scripts/stock_entry.js",
 	"Supplier" : "public/js/custom_scripts/supplier.js",
 	"Item" : "public/js/custom_scripts/item.js",
@@ -143,6 +146,8 @@ override_doctype_class = {
 # ---------------
 # Hook on document methods and events
 
+
+
 doc_events = {
 	# "*": {
 	# 	"on_update": "method",
@@ -152,9 +157,16 @@ doc_events = {
 	"Sales Order": {
 		"validate": [
 			"ht.ht_doctype_changes.update_raw_materials_table",
-			"ht.ht_doctype_changes.set_parent_items_table",
+			"ht.ht_doctype_changes.set_parent_items_table"
 		]
 	},
+	"Stock Ledger Entry": {
+        # "after_save": "ht.utils.purchase_receipt.update_brand_on_save",
+        # "after_submit": "ht.utils.purchase_receipt.update_brand_on_save",
+        "after_insert": "ht.utils.purchase_receipt.update_brand_on_save"
+
+
+    },
     # "Purchase Order": {
 	# 	"on_submit": [
 	# 		"ht.utils.purchase_order.set_placed_order_qty",

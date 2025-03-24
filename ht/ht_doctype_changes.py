@@ -85,6 +85,9 @@ def set_parent_items_table(self, method):
 				"stitch_waste_qty": d.stitch_waste_qty or 0.0,
 				"total_qty_with_waste": d.total_qty_with_waste or 0.0,
 				"total_stitching_amount": d.total_stitching_amount or 0.0,
+    			"fancy": d.fancy or 0.0,
+				"brand": d.brand
+
 			}
 
 			self.append("parent_items_tables", row)

@@ -20,6 +20,7 @@ def fetch_variant_into_raw(sales_order_no,purchase_type):
                     parent.variant_of,
                     parent.parentfield,
                     parent.item_code,
+                    parent.item_code as so_item_main, 
                     parent.qty,
                     parent.b_percent,
                     parent.item_name,
@@ -27,7 +28,8 @@ def fetch_variant_into_raw(sales_order_no,purchase_type):
                     parent.net_weight,
                     parent.weight_measuring_unit,
                     parent.greigh_weight,
-                    parent.total_parent_qty_with_b_percent
+                    parent.total_parent_qty_with_b_percent,
+                    parent.brand
                     
                     
                     
@@ -101,7 +103,8 @@ def setting_items(sales_order_no,purchase_type):
                     parent.total_parent_qty_with_b_percent,
                     parent.total_secondary_qty_with_b_percent,
                     parent.order_placed_qty,
-                    parent.cut_length
+                    parent.cut_length,
+                    parent.fancy
                     
 
                     
@@ -126,6 +129,7 @@ def setting_items(sales_order_no,purchase_type):
                     parent.variant_of,
                     parent.parentfield,
                     parent.item_code,
+                    parent.item_code as so_item_main,
                     parent.qty,
                     parent.b_percent,
                     parent.item_name,
@@ -137,7 +141,8 @@ def setting_items(sales_order_no,purchase_type):
                     parent.qty_with_b_percent,
                     parent.order_placed_qty,
                     parent.cut_length,
-                    parent.secondary_qty_with_b_percent
+                    parent.secondary_qty_with_b_percent,
+                    parent.fancy
 
                     
                     
@@ -411,11 +416,13 @@ def fetch_parent_items_of_so(sales_order_no,purchase_type):
                     parent.variant_of,
                     parent.parentfield,
                     parent.item_code,
+                    parent.item_code as so_item,                   
                     parent.item_name,
                     parent.total_parent_qty,
                     parent.total_parent_qty_with_b_percent,
                     parent.b_percent,
-                    parent.greigh_weight
+                    parent.greigh_weight,
+                    parent.brand
                     
                     
                     from  `tabParent Sales Order Item` as parent
@@ -465,6 +472,7 @@ def fetch_raw_material_items(sales_order_no,purchase_type):
                 raw.consumption_,
                 raw.consumption_lbs,
                 raw.rate_per_lbs,
+                raw.brand,
                 raw.order_placed_qty
                 
 
